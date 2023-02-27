@@ -1,0 +1,10 @@
+**/.keys
+**/wrf_python_tutorial
+**/WRF_python/skeleton_tracing
+**/__pycache__
+**/WRF_python/example_nwr_data/uk_d01.nc
+**/WRF_python/example_nwr_data/uk_d02.nc
+**/WRF_python/example_nwr_data/capeverde_d01.nc
+**/WRF_python/example_nwr_data/capeverde_d02.nc
+**/WRF_python/example_nwr_data/iceland_d01.nc
+**/WRF_python/example_nwr_data/iceland_d02.nc
