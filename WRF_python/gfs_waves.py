@@ -59,8 +59,7 @@ swellwind_wave_height = swellwind_wave_height.rename({'lat_0': 'latitude', 'lon_
 #wind_wave_direction = gfs_in.variables['WVDIR_P0_L1_GLL0'][:,:]
 
 
-#for dom in ["uk_d01", "uk_d02", "iceland_d01", "iceland_d02", "capeverde_d01", "capeverde_d02"]:
-for dom in ["uk_d01"]:
+for dom in ["uk_d01", "uk_d02", "iceland_d01", "iceland_d02", "capeverde_d01", "capeverde_d02"]:
    wrf_fil = "/home/earajr/FORCE_WRF_plotting/WRF_python/example_nwr_data/"+dom+".nc"
 
    wrf_in = Dataset(wrf_fil)
@@ -92,86 +91,66 @@ for dom in ["uk_d01"]:
    dest_lats = swellwind_wave_height_regridded['latitude']
    dest_lons = swellwind_wave_height_regridded['longitude']
 
-
-   
-   
-
-# nwr projections
-# uk +proj=merc +a=6370000.0 +b=6370000.0 +nadgrids=@null +lon_0=-2.0 +lat_ts=57.0 +k=1 +units=m +no_defs +type=crs
-# iceland +proj=merc +a=6370000.0 +b=6370000.0 +nadgrids=@null +lon_0=-18.299999 +lat_ts=64.300003 +k=1 +units=m +no_defs +type=crs
-# capeverde = +proj=merc +a=6370000.0 +b=6370000.0 +nadgrids=@null +lon_0=-24.1 +lat_ts=15.9 +k=1 +units=m +no_defs +type=crs 
-
-#cart_proj = "+proj=merc +a=6370000.0 +b=6370000.0 +nadgrids=@null +lon_0=-2.0 +lat_ts=57.0 +k=1 +units=m +no_defs +type=crs"
-
 # Create figure and axes
-fig = plt.figure(figsize=(10,10))
-ax = plt.axes(projection=cart_proj)
-ax.coastlines(linewidth=0.5)
+   fig = plt.figure(figsize=(10,10))
+   ax = plt.axes(projection=cart_proj)
+   ax.coastlines(linewidth=0.5)
 
 # Plot 200 hPa windspeed    
-wavehgt_lvl = np.arange(0, 10, 0.2)
-plt.contourf(dest_lons, dest_lats, swellwind_wave_height_regridded, levels=wavehgt_lvl, cmap='jet', transform=crs.PlateCarree())
+   wavehgt_lvl = np.arange(0, 10, 0.2)
+   plt.contourf(dest_lons, dest_lats, swellwind_wave_height_regridded, levels=wavehgt_lvl, cmap='jet', transform=crs.PlateCarree())
 
 ## Add wind vectors after thinning.
-thin = [int(x/25.) for x in dest_lons.shape]
+   thin = [int(x/25.) for x in dest_lons.shape]
 #ax.quiver(to_np(dest_lons[::thin[0],::thin[1]]), to_np(dest_lats[::thin[0],::thin[1]]), to_np(u[::thin[0],::thin[1]]), to_np(v[::thin[0],::thin[1]]), minlength=0.0, minshaft=0.0, scale=300,  pivot='tail', headwidth=20, headlength=2, headaxislength=1.5, transform=crs.PlateCarree())
-ax.quiver(to_np(dest_lons[::thin[0],::thin[1]]), to_np(dest_lats[::thin[0],::thin[1]]), to_np(u[::thin[0],::thin[1]]), to_np(v[::thin[0],::thin[1]]), minlength=0.0, minshaft=0.0, scale=400,  pivot='tip', headwidth=20, headlength=2, headaxislength=1.5, transform=crs.PlateCarree(), color=[0,0,0,0.5])
+   ax.quiver(to_np(dest_lons[::thin[0],::thin[1]]), to_np(dest_lats[::thin[0],::thin[1]]), to_np(u[::thin[0],::thin[1]]), to_np(v[::thin[0],::thin[1]]), minlength=0.0, minshaft=0.0, scale=400,  pivot='tip', headwidth=20, headlength=2, headaxislength=1.5, transform=crs.PlateCarree(), color=[0,0,0,0.5])
 
+# Identify whether domain is portrait or landscape
 
+   if np.size(dest_lats[:,0]) < np.size(dest_lats[0,:]):
+      portrait = True
+   else:
+      portrait = False
 
-'''
-## Identify whether domain is portrait or landscape
-#
-#   if np.size(lats[:,0]) < np.size(lats[0,:]):
-#      portrait = True
-#   else:
-#      portrait = False
-#
-##  portrait = False
-#
-## Create inset colourbar
-#
-#   if portrait:
-#      cbbox = inset_axes(ax, '13%', '90%', loc = 7)
-#      [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
-#      cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
-#      cbbox.set_facecolor([1,1,1,0.7])
-#      cbbox.text(0.7,0.5, "200 hPa windspeed (m/s)", rotation=90.0, verticalalignment='center', horizontalalignment='center')
-#      cbbox.text(0.85,0.5, "Geopotential height (10 dm spacing)", rotation=90.0, verticalalignment='center', horizontalalignment='center', color='red')
-#      cbaxes = inset_axes(cbbox, '30%', '95%', loc = 6)
-#      cb = plt.colorbar(cax=cbaxes, aspect=20)
-#   else:
-#      cbbox = inset_axes(ax, '90%', '12%', loc = 8)
-#      [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
-#      cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
-#      cbbox.set_facecolor([1,1,1,0.7])
-#      cbbox.text(0.5,0.3, "200 hPa windspeed (m/s)", verticalalignment='center', horizontalalignment='center')
-#      cbbox.text(0.5,0.15, "Geopotential height (10 dm spacing)", verticalalignment='center', horizontalalignment='center', color='red')
-#      cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
-#      cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
-#
-## Add inset timestamp
-#   tsbox = inset_axes(ax, '95%', '3%', loc = 9)
-#   [tsbox.spines[k].set_visible(False) for k in tsbox.spines]
-#   tsbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
-#   tsbox.set_facecolor([1,1,1,1])
-#
-#   sim_start_time = extract_global_attrs(wrf_in, 'SIMULATION_START_DATE')
-#   valid_time = str(extract_times(wrf_in, ALL_TIMES)[i])[0:22]
-#
-##   print(sim_start_time['SIMULATION_START_DATE'])
-#
-#   tsbox.text(0.01, 0.45, "Start date: "+sim_start_time['SIMULATION_START_DATE'], verticalalignment='center', horizontalalignment='left')
-#   tsbox.text(0.99, 0.45, "Valid_date: "+valid_time, verticalalignment='center', horizontalalignment='right')
-#
-## Add wind vectors after thinning.
-#   thin = [int(x/15.) for x in lons.shape]
-#   ax.quiver(to_np(lons[::thin[0],::thin[1]]), to_np(lats[::thin[0],::thin[1]]), to_np(u_200[::thin[0],::thin[1]]), to_np(v_200[::thin[0],::thin[1]]), pivot='middle', transform=crs.PlateCarree())
-#
-## Save image
-#
-#   grid_id = extract_global_attrs(wrf_in, 'GRID_ID')['GRID_ID']
-'''
-plt.savefig(dest_dir+"/windwaves_d0unknown_"+init_date.strftime("%Y-%m-%d_%H:00:00")+"_valid_"+fore_date.strftime("%Y-%m-%dT%H:00:00")+".png", bbox_inches='tight')
-plt.close()
+# Create inset colourbar
+
+   if portrait:
+      cbbox = inset_axes(ax, '13%', '90%', loc = 7)
+      [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
+      cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
+      cbbox.set_facecolor([1,1,1,0.7])
+      cbbox.text(0.7,0.5, "Combined wind and swell wave height (m)", rotation=90.0, verticalalignment='center', horizontalalignment='center')
+      cbbox.text(0.85,0.5, "Primary wave direction", rotation=90.0, verticalalignment='center', horizontalalignment='center', color='black')
+      cbaxes = inset_axes(cbbox, '30%', '95%', loc = 6)
+      cb = plt.colorbar(cax=cbaxes, aspect=20)
+   else:
+      cbbox = inset_axes(ax, '90%', '12%', loc = 8)
+      [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
+      cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
+      cbbox.set_facecolor([1,1,1,0.7])
+      cbbox.text(0.5,0.3, "Combined wind and swell wave height (m)", verticalalignment='center', horizontalalignment='center')
+      cbbox.text(0.5,0.15, "Primary wave direction", verticalalignment='center', horizontalalignment='center', color='black')
+      cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
+      cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
+
+# Add inset timestamp
+   tsbox = inset_axes(ax, '95%', '3%', loc = 9)
+   [tsbox.spines[k].set_visible(False) for k in tsbox.spines]
+   tsbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
+   tsbox.set_facecolor([1,1,1,1])
+
+   sim_start_time = init_date.strftime("%Y-%m-%d_%H:00:00")
+   valid_time = fore_date.strftime("%Y-%m-%dT%H:00:00")
+
+#   print(sim_start_time['SIMULATION_START_DATE'])
+
+   tsbox.text(0.01, 0.45, "Start date: "+sim_start_time, verticalalignment='center', horizontalalignment='left')
+   tsbox.text(0.99, 0.45, "Valid_date: "+valid_time, verticalalignment='center', horizontalalignment='right')
+
+# Save image
+
+   grid_id = extract_global_attrs(wrf_in, 'GRID_ID')['GRID_ID']
+
+   plt.savefig(dest_dir+"/windwaves_"+dom+"_"+init_date.strftime("%Y-%m-%d_%H:00:00")+"_valid_"+fore_date.strftime("%Y-%m-%dT%H:00:00")+".png", bbox_inches='tight')
+   plt.close()
 
