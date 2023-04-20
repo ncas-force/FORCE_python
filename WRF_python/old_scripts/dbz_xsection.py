@@ -196,7 +196,7 @@ for i in np.arange(0,np.size(top_alts),1):
                xsection_alts2 = float(xsection_alts[k+1])
 
 # Plot polyline indicating path of aircraft through the cross section
-            ax.plot([0, x_ticks[-1]], [100.0*((xsection_alts1-float(base_alts[i][0]))/(float(top_alts[i][0])-float(base_alts[i][0]))), 100.0*((xsection_alts2-float(base_alts[i][0]))/(float(top_alts[i][0])-float(base_alts[i][0])))], color='red')
+#            ax.plot([0, x_ticks[-1]], [100.0*((xsection_alts1-float(base_alts[i][0]))/(float(top_alts[i][0])-float(base_alts[i][0]))), 100.0*((xsection_alts2-float(base_alts[i][0]))/(float(top_alts[i][0])-float(base_alts[i][0])))], color='red')
 
 # Plot terrain at the bottom of the cross section
 

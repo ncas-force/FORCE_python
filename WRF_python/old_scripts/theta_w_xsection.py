@@ -13,18 +13,34 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from pyproj import Geod
 from scipy import interpolate
 import csv
+import fill_xsec_nans
+import rotate_ua_va_vert_cross
 
 from wrf import (getvar, interplevel, interpline, vertcross, CoordPair, ALL_TIMES, to_np, get_cartopy, latlon_coords, cartopy_xlim, cartopy_ylim, extract_times, extract_global_attrs)
 
-# NEED TO ADD COLOUR BAR TO FAR RIGHT SIDE OF PLOT
-# NEED MORE NUANCED CONTROL OVER WHEN CONTOUR LABELS ARE ADDED, FOR EXAMPLE CHECKING THAT ANY ARE BEING ADDED AT ALL AND IF NOT THEN ADDING CONTOUR LABELS TO THE 2 LARGEST PARTS OF THE XSECTION.
+# possible arguments to pass (all?) the python plotting scripts
 
+#colormap viridis/magma/jet/etc.
+#contour minimum
+#contour maximum
+#contour step
+#destination directory
+#input directory
+#input file name
+#latitudes
+#longitudes
+#base alt
+#top alt
+#flag for inclusion of wind information
+#flag for inclusion of flight path (default no)
+
+
+# Input information (supplied as arguments or using default values)
 # Input contour level min and max and step
 
-cmin = 0.0
-cmax = 20.0
+cmin = -10.0
+cmax = 30.0
 cstep = 0.5
-
 
 # Define destination directory
 dest_dir = "/home/earajr/FORCE_WRF_plotting/output/wthxsection"
@@ -91,7 +107,10 @@ num_times = np.size(extract_times(wrf_in, ALL_TIMES))
 # Loop over all provided cross sections
 
 for i in np.arange(0,np.size(top_alts),1):
-   
+#
+
+
+# Process data
 # Calculate levels to interpolate onto
 
    lev_interval = (float(top_alts[i][0]) - float(base_alts[i][0]))/100.0
@@ -116,7 +135,6 @@ for i in np.arange(0,np.size(top_alts),1):
          xsection_locs.append(CoordPair(lat=xsection_lats[j], lon=xsection_lons[j]))
          if j > 0:
             gc_dist.append(geod.inv(xsection_lons[j-1], xsection_lats[j-1], xsection_lons[j], xsection_lats[j])[2]/1000.0)
-      print(xsection_locs)
 
 # Calculate total length of cross section and percentage of each section (including integer version for plot scaling)
 
@@ -125,6 +143,7 @@ for i in np.arange(0,np.size(top_alts),1):
       dist_percent_int = []
       for j in np.arange(0, np.size(dist_percent), 1):
          dist_percent_int.append(int(dist_percent[j]))
+      dist_percent_int.append(3)
 
       for j in np.arange(0, num_times, 1):
 
@@ -132,16 +151,27 @@ for i in np.arange(0,np.size(top_alts),1):
          ht = getvar(wrf_in, 'z', timeidx=j)
          theta_e = getvar(wrf_in, 'theta_e', timeidx=j)
          ter = getvar(wrf_in, "ter", timeidx=-1)
+         ua = getvar(wrf_in, 'ua', timeidx=j)
+         va = getvar(wrf_in, 'va', timeidx=j)
+         wa = getvar(wrf_in, 'wa', timeidx=j)
 
 # Compute vertical cross section interpolation
 
          theta_w_cross = []
+         h_wind_cross = []
+         wa_cross = []
          ter_cross = []
 
          for k in np.arange(0, np.size(gc_dist), 1):
             theta_e_cross =vertcross(theta_e, ht, wrfin=wrf_in, levels=interp_levs, start_point=xsection_locs[k], end_point=xsection_locs[k+1], latlon=True, meta=True)
             theta_w_cross.append(45.114 - (51.489*(273.15/theta_e_cross)**3.504))
             ter_cross.append(interpline(ter, wrfin=wrf_in, start_point=xsection_locs[k], end_point=xsection_locs[k+1]))
+
+            ua_cross = vertcross(ua, ht, wrfin=wrf_in, levels=interp_levs, start_point=xsection_locs[k], end_point=xsection_locs[k+1], latlon=True, meta=True)
+            va_cross = vertcross(va, ht, wrfin=wrf_in, levels=interp_levs, start_point=xsection_locs[k], end_point=xsection_locs[k+1], latlon=True, meta=True)
+            wa_cross.append(vertcross(wa, ht, wrfin=wrf_in, levels=interp_levs, start_point=xsection_locs[k], end_point=xsection_locs[k+1], latlon=True, meta=True))
+
+            h_wind_cross.append(rotate_ua_va_vert_cross.rotate(ua_cross, va_cross)[0])
 
 # Read projection from a variable (will be able to detect all possible WRF projections and use them for plotting) 
          cart_proj = get_cartopy(theta_e)
@@ -152,7 +182,7 @@ for i in np.arange(0,np.size(top_alts),1):
          plt.subplots_adjust(wspace=0, hspace=0)
 
 # create gridspec for subplot scaling
-         gs = fig.add_gridspec(1,np.size(gc_dist), width_ratios=dist_percent_int)
+         gs = fig.add_gridspec(1,np.size(gc_dist)+1, width_ratios=dist_percent_int)
 
 # Set contour levels
          t_lvls = np.arange(cmin, cmax, cstep)
@@ -167,18 +197,61 @@ for i in np.arange(0,np.size(top_alts),1):
             thin = [int(x/10.0) for x in v_ticks.shape]
             ax.set_yticks(v_ticks[::thin[0]])
             x_ticks = np.arange(0.0, np.shape(theta_w_cross[k])[1], 1)
-            theta_w_cross_np = np.where(np.isnan(to_np(theta_w_cross[k])), np.nan ,to_np(theta_w_cross[k]))
 
-# Fill in nans at the bottom of the cross section with nearest value from above (this might be a bit of a bodge and might not be the fastest way to do it).
-            for l in np.arange(0, np.size(x_ticks), 1):
-               ind = np.where(~np.isnan(theta_w_cross_np[:,l]))[0]
-               first, last = ind[0], ind[-1]
-               theta_w_cross_np[:first,l] = theta_w_cross_np[first,l]
-               theta_w_cross_np[last + 1:,l] = theta_w_cross_np[last,l]
+            if k == 0:
+                plt.title('Wetbulb Potential Temperature cross section. Latitudes: '+','.join(map(str, wp_lats))+ ', Longitudes: '+','.join(map(str, wp_lons)), horizontalalignment='left', fontsize=10, fontweight='bold', loc='left')
+            
+            theta_w_cross_np = np.where(np.isnan(to_np(theta_w_cross[k])), np.nan ,to_np(theta_w_cross[k]))
+            h_wind_cross_np = np.where(np.isnan(to_np(h_wind_cross[k])), np.nan, to_np(h_wind_cross[k]))
+            wa_cross_np = np.where(np.isnan(to_np(wa_cross[k])), np.nan, to_np(wa_cross[k]))
+
+# Fill in nans at the bottom of the cross section with nearest value from above
+
+            theta_w_cross_np = fill_xsec_nans.fill_xsec_nans(theta_w_cross_np)
+
+#            for l in np.arange(0, np.size(x_ticks), 1):
+#               ind = np.where(~np.isnan(theta_w_cross_np[:,l]))[0]
+#               first, last = ind[0], ind[-1]
+#               theta_w_cross_np[:first,l] = theta_w_cross_np[first,l]
+#               theta_w_cross_np[last + 1:,l] = theta_w_cross_np[last,l]
+
 
 # Create contours 
             t_contours = ax.contourf(x_ticks, v_ticks, theta_w_cross_np, levels=t_lvls, cmap='jet')
             t_contours2 = ax.contour(x_ticks, v_ticks, theta_w_cross_np, levels=t_lvls2, colors='k')
+            if np.size(gc_dist) <= 1:
+               thin_vec = [int(x/20.) for x in h_wind_cross_np.shape]
+               print(thin_vec)
+#              h_wind_cross_np[-thin_vec[0]::,0:thin_vec[1]] = 50.0
+#
+#              wa_cross_np[-thin_vec[0]::,0:thin_vec[1]] = 0.0
+               ws_cross_np = np.sqrt((h_wind_cross_np**2.0)+(wa_cross_np**2.0))
+               max_ws_cross_np = np.nanmax(ws_cross_np)
+
+#               if max_ws_cross_np <= 5.0:
+#                  scale = 0.5
+#               else:
+#                  scale = (0.15*(max_ws_cross_np-5.0))+0.5
+
+               if max_ws_cross_np <=12.5:
+                  key_val = 10.0
+               elif max_ws_cross_np <= 30.0:
+                  key_val = 25.0
+               elif max_ws_cross_np <= 52.0:
+                  key_val = 50.0
+               elif max_ws_cross_np <= 73.0:
+                  key_val = 75.0
+               elif max_ws_cross_np <= 95.0:
+                  key_val = 100.0
+               elif max_ws_cross_np <= 113.0:
+                  key_val = 125.0
+               else:
+                  key_val = 150.0
+               
+               scale = key_val/8.0
+
+               h_wind_quivers = ax.quiver(x_ticks[::thin_vec[1]], v_ticks[::thin_vec[0]], h_wind_cross_np[::thin_vec[0],::thin_vec[1]], wa_cross_np[::thin_vec[0],::thin_vec[1]], pivot='middle', zorder=2, width=0.002, scale_units='y', scale=scale)
+               quiverkey = ax.quiverkey(h_wind_quivers, 0.9, 0.9, key_val, '{:.0f} '.format(key_val)+'m/s', labelpos='E', coordinates='figure')
 
 # correct waypoint altitudes so that they cannot be below the suface
 
@@ -194,7 +267,7 @@ for i in np.arange(0,np.size(top_alts),1):
                xsection_alts2 = float(xsection_alts[k+1])
 
 # Plot polyline indicating path of aircraft through the cross section
-            ax.plot([0, x_ticks[-1]], [100.0*((xsection_alts1-float(base_alts[i][0]))/(float(top_alts[i][0])-float(base_alts[i][0]))), 100.0*((xsection_alts2-float(base_alts[i][0]))/(float(top_alts[i][0])-float(base_alts[i][0])))], color='red')
+#            ax.plot([0, x_ticks[-1]], [100.0*((xsection_alts1-float(base_alts[i][0]))/(float(top_alts[i][0])-float(base_alts[i][0]))), 100.0*((xsection_alts2-float(base_alts[i][0]))/(float(top_alts[i][0])-float(base_alts[i][0])))], color='red')
 
 # Plot terrain at the bottom of the cross section
 
@@ -242,6 +315,9 @@ for i in np.arange(0,np.size(top_alts),1):
                         clab_locs.append([x_val,np.mean(verts[:,1])])
 
                   ax.clabel(t_contours2, fontsize=9, inline=1, fmt='%2.1f', manual=clab_locs)
+
+         ax = fig.add_subplot(gs[k+1]) 
+         fig.colorbar(t_contours, cax=ax, label="Wet bulb potential temperature $^\circ$C")
 
 # Save figure
 
