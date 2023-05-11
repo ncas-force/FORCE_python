@@ -1,3 +1,4 @@
+
 def profile_skewT(x):
 
    import numpy as np
@@ -62,25 +63,51 @@ def profile_skewT(x):
 
       x_y = ll_to_xy(wrf_in, float(profile_lat[0]), float(profile_lon[0]))
 
+      print(profile_lat[0])
+      print(profile_lon[0])
+      print(x_y)
+
+      print(np.shape(lats))
+
+      print("")
+      print("")
+
       if x_y[1] >= 0 and x_y[1] < np.shape(lats)[0] and x_y[0] >= 0 and x_y[0] < np.shape(lats)[1]:
          print("Sounding is in lat lon range of selected simulation")
 
 # Subset data for specific profile 
-         hgt_p = hgt[:,x_y[0],x_y[1]]
-         rh_p = rh[:,x_y[0],x_y[1]]
-         press_p = press[:,x_y[0],x_y[1]] * units.hPa
-         t_p = t[:,x_y[0],x_y[1]] * units.degC
-         td_p = td[:,x_y[0],x_y[1]] * units.degC
-         u_p = u[:,x_y[0],x_y[1]] * units('m/s')
-         v_p = v[:,x_y[0],x_y[1]] * units('m/s')
+#         hgt_p = hgt[:,x_y[0],x_y[1]]
+#         rh_p = rh[:,x_y[0],x_y[1]]
+#         press_p = press[:,x_y[0],x_y[1]] * units.hPa
+#         t_p = t[:,x_y[0],x_y[1]] * units.degC
+#         td_p = td[:,x_y[0],x_y[1]] * units.degC
+#         u_p = u[:,x_y[0],x_y[1]] * units('m/s')
+#         v_p = v[:,x_y[0],x_y[1]] * units('m/s')
+#
+#         es_p = 6.1121*np.exp((18.678-(to_np(t_p)[0:4]/234.5))*(to_np(t_p)[0:4]/(257.14+to_np(t_p)[0:4])))
+#         ws_p = (621.97*(es_p/(to_np(press_p)[0:4]-es_p)))
+#         w_p = np.mean(((to_np(rh_p)[0:4]/100.0)*ws_p)/1000.0)
+#
+#         press_p_sparse = (press_sparse[:,x_y[0],x_y[1]] * units.hPa)
+#         u_p_sparse = (u_sparse[:,x_y[0],x_y[1]] * units('m/s'))
+#         v_p_sparse = (v_sparse[:,x_y[0],x_y[1]] * units('m/s'))
+
+# Subset data for specific profile
+         hgt_p = hgt[:,x_y[1],x_y[0]]
+         rh_p = rh[:,x_y[1],x_y[0]]
+         press_p = press[:,x_y[1],x_y[0]] * units.hPa
+         t_p = t[:,x_y[1],x_y[0]] * units.degC
+         td_p = td[:,x_y[1],x_y[0]] * units.degC
+         u_p = u[:,x_y[1],x_y[0]] * units('m/s')
+         v_p = v[:,x_y[1],x_y[0]] * units('m/s')
 
          es_p = 6.1121*np.exp((18.678-(to_np(t_p)[0:4]/234.5))*(to_np(t_p)[0:4]/(257.14+to_np(t_p)[0:4])))
          ws_p = (621.97*(es_p/(to_np(press_p)[0:4]-es_p)))
          w_p = np.mean(((to_np(rh_p)[0:4]/100.0)*ws_p)/1000.0)
 
-         press_p_sparse = (press_sparse[:,x_y[0],x_y[1]] * units.hPa)
-         u_p_sparse = (u_sparse[:,x_y[0],x_y[1]] * units('m/s'))
-         v_p_sparse = (v_sparse[:,x_y[0],x_y[1]] * units('m/s'))
+         press_p_sparse = (press_sparse[:,x_y[1],x_y[0]] * units.hPa)
+         u_p_sparse = (u_sparse[:,x_y[1],x_y[0]] * units('m/s'))
+         v_p_sparse = (v_sparse[:,x_y[1],x_y[0]] * units('m/s'))
 
 # Create figure and axes 
          fig, ax = plt.subplots(1,1, figsize=(10,10))
