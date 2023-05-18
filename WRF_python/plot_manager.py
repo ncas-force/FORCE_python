@@ -18,9 +18,9 @@ if __name__ == "__main__":
 
 # Tests to make sure parsing of dictionaries is functioning properly.
 
-#   command_dict = {"plottype":"crosssection", "latitudes":[53.5, 53.5], "longitudes":[-5.0,-0.5], "infile":"/home/force-nwr/nwr/uk/data/2023041400/wrfout_d02_2023-04-14_14:00:00", "content":"specifichumidity", "windvector":"True", "leveltype":"altitude", "levels": [0, 10000], "times":["20230414T140000"]}
-#  command_dict = {"plottype":"profile", "latitudes":[53.5], "longitudes":[0.5], "infile":"/home/force-nwr/nwr/uk/data/2023041400/wrfout_d02_2023-04-14_14:00:00", "content":"skewT"}
-   command_dict = {"plottype":"map", "latitudes":[0.0, 0.0], "longitudes":[0.0, 0.0], "infile":"/home/force-nwr/nwr/uk/data/2023041400/wrfout_d01_2023-04-14_14:00:00", "content":"radiationfog"}
+   command_dict = {"plottype":"crosssection", "latitudes":[53.5, 53.5], "longitudes":[-5.0,-0.5], "infile":"/home/force-nwr/nwr/uk/data/2023041400/wrfout_d02_2023-04-14_14:00:00", "content":"wetbulbtemperature", "windvector":False, "leveltype":"altitude", "levels": [0, 10000], "times":["20230414T140000"]}
+#   command_dict = {"plottype":"profile", "latitudes":[53.5], "longitudes":[0.5], "infile":"/home/force-nwr/nwr/uk/data/2023041400/wrfout_d02_2023-04-14_14:00:00", "content":"skewT"}
+#   command_dict = {"plottype":"map", "latitudes":[0.0, 0.0], "longitudes":[0.0, 0.0], "infile":"/home/force-nwr/nwr/uk/data/2023041400/wrfout_d01_2023-04-14_14:00:00", "content":"radiationfog"}
 
    fig = plotter(command_dict)
    plt.savefig("test_figure.png", bbox_inches='tight')

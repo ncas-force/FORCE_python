@@ -20,9 +20,6 @@ def rotate(ua_vertcross, va_vertcross):
    # Create an emptry transect
    met_dir_transect = []
 
-   print(main_lat)
-   print(main_lon)
-
    point_a = main_lat[0], main_lon[0]
    point_b = main_lat[-1], main_lon[-1]
    point_c = main_lat[0], main_lon[-1]

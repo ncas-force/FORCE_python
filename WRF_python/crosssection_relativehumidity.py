@@ -19,7 +19,9 @@ def crosssection_relativehumidity(x):
 # Read cross section spatial information from input dictionary 
 
    xsection_lats = x["latitudes"]
+   xsection_lats_str = ['{:.2f}'.format(x) for x in xsection_lats]
    xsection_lons = x["longitudes"]
+   xsection_lons_str = ['{:.2f}'.format(x) for x in xsection_lons]
    if "alts" not in x:
       x["alts"] = [0]*len(x["latitudes"])
    xsection_alts = x["alts"]
@@ -69,6 +71,7 @@ def crosssection_relativehumidity(x):
       dist_percent_int = []
       for j in np.arange(0, np.size(dist_percent), 1):
          dist_percent_int.append(int(dist_percent[j]))
+      dist_percent_int.append(1)
       dist_percent_int.append(3)
 
 # Loop over times present in input file
@@ -118,7 +121,7 @@ def crosssection_relativehumidity(x):
          plt.subplots_adjust(wspace=0, hspace=0)
 
 # create gridspec for subplot scaling
-         gs = fig.add_gridspec(1,np.size(gc_dist)+1, width_ratios=dist_percent_int)
+         gs = fig.add_gridspec(1,np.size(gc_dist)+2, width_ratios=dist_percent_int)
 
 # Set contour levels
          rh_lvls = np.arange(cmin, cmax, cstep)
@@ -139,7 +142,7 @@ def crosssection_relativehumidity(x):
                   plt_title = 'Relative Humidity cross section and wind vectors parallel to cross section:'
                else:
                   plt_title = 'Relative Humidity cross section:'
-               plt.title(plt_title+' '+crosssectionname+'\nLatitudes: '+','.join(map(str, xsection_lats))+ ', Longitudes: '+','.join(map(str, xsection_lons))+'\nSimulation start time: '+sim_start_time['SIMULATION_START_DATE']+', Valid time: '+str(valid_time), horizontalalignment='left', fontsize=10, fontweight='bold', loc='left')
+               plt.title(plt_title+' '+crosssectionname+'\nLatitudes (degrees north): '+','.join(xsection_lats_str)+ ', Longitudes (degrees east): '+','.join(xsection_lons_str)+'\nSimulation start time: '+sim_start_time['SIMULATION_START_DATE'].replace("_", " ")[0:19]+', Valid time: '+str(valid_time).replace("T", " ")[0:19], horizontalalignment='left', fontsize=10, fontweight='bold', loc='left')
             
             rh_cross_np = np.where(np.isnan(to_np(rh_cross[k])), np.nan ,to_np(rh_cross[k]))
 
@@ -201,14 +204,63 @@ def crosssection_relativehumidity(x):
             ht_fill = ax.fill_between(x_ticks, 0, 100.0*((to_np(ter_cross[k])-float(base_alt))/(float(top_alt)-float(base_alt))), facecolor="black")
 
 # Setup tickmarks so that only the first panel has y axis labels and x axis labels are lat and lon values      
+
+            step = 10
+            num_x_ticks = dist_percent[k]/step
+            x_tick_step = round(np.shape(rh_cross_np)[1]/num_x_ticks)
+            indices = np.arange(0, np.shape(rh_cross[k])[1], x_tick_step)
+            while True:
+               if np.shape(rh_cross_np)[1] - indices[-1] < x_tick_step*0.75:
+                  step += 1
+                  num_x_ticks = dist_percent[k]/step
+                  x_tick_step = round(np.shape(rh_cross_np)[1]/num_x_ticks)
+                  indices = np.arange(0, np.shape(rh_cross_np)[1], x_tick_step)
+               else:
+                  break
+
             if k == 0 :
                ax.set_yticklabels(vert_vals[::thin[0]], fontsize=10)
-               ax.set_xticks([x_ticks[0], x_ticks[-1]])
-               ax.set_xticklabels([str(xsection_lats[k])+"\n"+str(xsection_lons[k]), str(xsection_lats[k+1])+"\n"+str(xsection_lons[k+1])], fontsize=10)
+               ax.set_xticks(x_ticks[0::x_tick_step])
+               coords = to_np(rh_cross[k].coords["xy_loc"])
+               lat_labels = [(x.lat) for x in coords]
+               lat_labels_str = ['{:.2f}'.format(x) for x in lat_labels]
+               lon_labels = [(x.lon) for x in coords]
+               lon_labels_str = ['{:.2f}'.format(x) for x in lon_labels]
+               labels = [str(lat_labels_str[x])+"\n"+str(lon_labels_str[x]) for x in np.arange(0, np.shape(rh_cross[k])[1], x_tick_step)]
+               if k == np.size(gc_dist)-1:
+                  x_ticks_temp = list(x_ticks[0::x_tick_step])
+                  x_ticks_temp.append(x_ticks[-1])
+                  ax.set_xticks(x_ticks_temp)
+                  labels.append(str(lat_labels_str[-1])+"\n"+str(lon_labels_str[-1]))
+               ax.set_xticklabels(labels, fontsize=10)
+            elif k != np.size(gc_dist)-1:
+               ax.set_xticks(x_ticks[0::x_tick_step])
+               coords = to_np(rh_cross[k].coords["xy_loc"])
+               lat_labels = [(x.lat) for x in coords]
+               lat_labels_str = ['{:.2f}'.format(x) for x in lat_labels]
+               lon_labels = [(x.lon) for x in coords]
+               lon_labels_str = ['{:.2f}'.format(x) for x in lon_labels]
+               labels = [str(lat_labels_str[x])+"\n"+str(lon_labels_str[x]) for x in np.arange(0, np.shape(rh_cross[k])[1], x_tick_step)]
+               ax.set_xticklabels(labels, fontsize=10)
             else:
                ax.set_yticklabels([])
-               ax.set_xticks([x_ticks[-1]])
-               ax.set_xticklabels([str(xsection_lats[k+1])+"\n"+str(xsection_lons[k+1])], fontsize=10)
+               x_ticks_temp = list(x_ticks[0::x_tick_step])
+               x_ticks_temp.append(x_ticks[-1])
+               ax.set_xticks(x_ticks_temp)
+               coords = to_np(rh_cross[k].coords["xy_loc"])
+               lat_labels = [(x.lat) for x in coords]
+               lat_labels_str = ['{:.2f}'.format(x) for x in lat_labels]
+               lon_labels = [(x.lon) for x in coords]
+               lon_labels_str = ['{:.2f}'.format(x) for x in lon_labels]
+               labels = [str(lat_labels_str[x])+"\n"+str(lon_labels_str[x]) for x in np.arange(0, np.shape(rh_cross[k])[1], x_tick_step)]
+               labels.append(str(lat_labels_str[-1])+"\n"+str(lon_labels_str[-1]))
+               ax.set_xticklabels(labels, fontsize=10)
+
+            ax.grid(axis = 'y')
+
+            fig.text(0.075, 0.5, "Altitude (meters)", va='center', rotation='vertical')
+            fig.text(0.42, 0.00, "Latitude (degrees N) \n      Longitude (degrees E)", va='center')
+
 
 # Set position of contour labels so that they only occur in panels that are greater than 15 % of the total width and occur down tha middle of the panel
             if any(span >= 15 for span in dist_percent_int):
@@ -244,7 +296,11 @@ def crosssection_relativehumidity(x):
                   ax.clabel(t_contours2, fontsize=9, inline=1, fmt='%2.1f', manual=clab_locs)
 
 # Add additional panel to act as a colorbar
-         ax = fig.add_subplot(gs[k+1]) 
+         ax = fig.add_subplot(gs[k+1])
+         ax.set_yticklabels([])
+         ax.set_xticklabels([])
+         ax.axis('off')
+         ax = fig.add_subplot(gs[k+2])
          fig.colorbar(t_contours, cax=ax, label="Relative Humidity %")
 
 # Return figure
