@@ -13,7 +13,7 @@ def map_fax(x):
    from skimage.filters import sato, gaussian
    from pyproj import Geod
 
-   from wrf import (getvar, interplevel, vertcross, CoordPair, ALL_TIMES, to_np, get_cartopy, latlon_coords, cartopy_xlim, cartopy_ylim, extract_times, extract_global_attrs, ll_to_xy)
+   from wrf import (getvar, interplevel, vertcross, CoordPair, ALL_TIMES, to_np, get_cartopy, latlon_coords, cartopy_xlim, cartopy_ylim, extract_times, extract_global_attrs, ll_to_xy, get_proj_params, getproj)
 
 # Read spatial information from input dictionary
 
@@ -60,6 +60,8 @@ def map_fax(x):
 
 # Read WRF out netcdf
    wrf_in = Dataset(wrf_fil)
+   proj = getproj(**get_proj_params(wrf_in))
+   projection = proj.cf()['grid_mapping_name']
 
 # Define geodesy
    geod = Geod(ellps='WGS84')
@@ -88,8 +90,7 @@ def map_fax(x):
 # Read all sea level pressure
          slp_all = getvar(wrf_in, 'slp', timeidx=i)
 
-# Ceck that the supplied lat and lon values are within the WRRF domain, if not then the plot will not be created.
-
+# Check that the supplied lat and lon values are within the WRF domain, if not then the plot will not be created.
          if limit_id == "all":
             x1_y1 = (1, 1)
             x2_y2 = (1, 1)
@@ -113,6 +114,7 @@ def map_fax(x):
             min_lat_ind = 10000
          
             max_lon_ind = 0
+
             min_lon_ind = 10000
 
             for j, k in zip(*np.where(lat_lon_mask)):
@@ -139,8 +141,15 @@ def map_fax(x):
 # Read pressure, theta_e and winds
             pres = getvar(wrf_in, 'pressure', timeidx=i)[:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
             theta_e = getvar(wrf_in, 'theta_e', timeidx=i)[:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
-            v = getvar(wrf_in, 'va', timeidx=i, units='m/s')[:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
-            u = getvar(wrf_in, 'ua', timeidx=i, units='m/s')[:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
+
+            if projection == "mercator":
+               v = getvar(wrf_in, 'va', timeidx=i, units='m/s')[:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
+               u = getvar(wrf_in, 'ua', timeidx=i, units='m/s')[:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
+
+            else:
+               uv = getvar(wrf_in, 'uvmet', timeidx=i, units='m/s')
+               u = uv[0,:,min_lat_ind:max_lat_ind+1,min_lon_ind:max_lon_ind+1]
+               v = uv[1,:,min_lat_ind:max_lat_ind+1,min_lon_ind:max_lon_ind+1]
 
 # Calculate theta_w and interpolate theta_w and winds to required pressure level and calculate gradient
             plev = 800.0
@@ -330,6 +339,9 @@ def map_fax(x):
             fig = plt.figure(figsize=(10,10))
             ax = plt.axes(projection=cart_proj)
             ax.coastlines(linewidth=0.5)
+            gl = ax.gridlines(linewidth=0.5, draw_labels=True, x_inline=False, y_inline=False, alpha=0.5, linestyle='--')
+            gl.right_labels = False
+            gl.bottom_labels = False
 
             if limit_id == "ullr":
                ul_lat = max(limit_lats)
@@ -364,12 +376,23 @@ def map_fax(x):
 
 # Add inset title
 
-            titlebox = inset_axes(ax, '5%', '90%', loc = 7)
-            [titlebox.spines[k].set_visible(False) for k in titlebox.spines]
-            titlebox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
-            titlebox.set_facecolor([1,1,1,0.7])
+            title_inset = False
+ 
+            if title_inset:
+
+               titlebox = inset_axes(ax, '5%', '90%', loc = 7)
+               [titlebox.spines[k].set_visible(False) for k in titlebox.spines]
+               titlebox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
+               titlebox.set_facecolor([1,1,1,0.7])
    
-            titlebox.text(0.5,0.5, "Mean Sea Level Pressure (hPa)", rotation=90.0, verticalalignment='center', horizontalalignment='center')
+               titlebox.text(0.5,0.5, "Mean Sea Level Pressure (hPa)", rotation=90.0, verticalalignment='center', horizontalalignment='center')
+            else:
+               titlebox = inset_axes(ax, '100%', '100%', bbox_to_anchor=(0, -0.05, 1, 0.05), bbox_transform=ax.transAxes, loc = 8, borderpad=0)
+               [titlebox.spines[k].set_visible(False) for k in titlebox.spines]
+               titlebox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
+               titlebox.set_facecolor([1,1,1,0.7])
+
+               titlebox.text(0.5,0.5, "Mean Sea Level Pressure (hPa)", rotation=0.0, verticalalignment='center', horizontalalignment='center')
 
 # Add inset timestamp
             tsbox = inset_axes(ax, '95%', '3%', loc = 9)
