@@ -1,6 +1,7 @@
 **/.keys
 **/wrf_python_tutorial
 **/WRF_python/skeleton_tracing
+**/images
 **/__pycache__
 **/WRF_python/example_nwr_data/uk_d01.nc
 **/WRF_python/example_nwr_data/uk_d02.nc

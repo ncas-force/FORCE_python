@@ -210,7 +210,7 @@ def map_absolutevorticity(x):
             [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
             cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
             cbbox.set_facecolor([1,1,1,0.7])
-            cbbox.text(0.5,0.3, colorbartext, verticalalignment='center', horizontalalignment='center')
+            cbbox.text(0.5,0.1, colorbartext, verticalalignment='center', horizontalalignment='center')
             cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
             cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
             
