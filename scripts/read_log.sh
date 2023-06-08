@@ -2,84 +2,81 @@
 
 source /home/earajr/.bashrc
 source /home/earajr/anaconda3/etc/profile.d/conda.sh
-conda activate ncl
+conda activate wp_env
 
-region=$1
-strt_date=$2
-strt_hour=$3
+project=$1
+region=$2
+strt_date=$3
+strt_hour=$4
 
 forecast_len=60
 
 end_time=$( date -u -d "${strt_hour}:00:00 ${strt_date:0:4}-${strt_date:4:2}-${strt_date:6:2} +${forecast_len}hours" +"%Y-%m-%d_%H:%M:%S" )
 
-/home/force-woest/woest1300/uk/data/2023060512/
-
-script_dir="/home/earajr/FORCE_WRF_plotting/bash_plotting_controls"
+script_dir="/home/earajr/FORCE_WRF_plotting/scripts"
 namelist_vars="${script_dir}/namelist.vars"
 namelist_locs="${script_dir}/sounding.locs"
-src_dir="/home/force-woest/woest1300/${region}/data/${strt_date}${strt_hour}"
-base_dest_dir="/home/earajr/ncl_plotting/scripts/images/${region}/${strt_date}/${strt_hour}"
-#log_file="${src_dir}/nwr_log"
-##log_file="/home/earajr/ncl_plotting/scripts/test_log"
-#command_list="${script_dir}/command_list_${region}_${strt_date}_${strt_hour}"
-#fil_list="${script_dir}/fil_list_${region}_${strt_date}_${strt_hour}"
-#
-## Read namelist.varfile to aquire relavent information for variables to be plotted
-#
-##( tail -f -n0 ${log_file} & ) | grep -q "Starting wrf.exe:"
-#while true
-#do
-#   if grep -q "Starting wrf.exe:" ${log_file}
-#   then
-#      break
-#   fi
-#done
-#
-#if [ -f "${command_list}" ]
-#then
-#   rm -rf ${command_list}
-#fi
-#touch ${command_list}
-#
-#if [ -f "${fil_list}" ]
-#then
-#   rm -rf ${fil_list}
-#fi
-#touch ${fil_list}
-#
-#count=0 
-#while true;
-#do
-#   date_time=$( date -u '+%Y%m%d%H%M%S' )
-#   touch ${command_list}_${date_time}
-#
-#   if compgen -G "${src_dir}/wrfout*" > /dev/null;
-#   then
-#      for fil in ${src_dir}/wrfout*;
-#      do
-#         if grep -q ${fil} ${fil_list};
-#         then
-#   	    echo "############################################################################################################################"
-#            echo "File \"${fil}\" already processed."
-#	    echo "############################################################################################################################"
-#         else
-#            base_fil=$( basename ${fil} ) 
-#            dom=$( echo ${base_fil} | awk -F "_" '{print $2}' )
-#
-#            while IFS= read -r var_line; do
-#               var_line_head=$( echo ${var_line} | awk -F ":" '{print $1}' )
-#               if [ "${var_line_head}" == "s_lev_vars" ]
-#               then
-#                  for var in $( echo ${var_line} | awk -F ":" '{print $2}' )
-#                  do
-#                     var1=$( echo ${var} | tr -d , )
+src_dir="/home/force-woest/woest/${region}/data/${strt_date}${strt_hour}"
+base_dest_dir="/home/earajr/FORCE_WRF_plotting/images/${project}/${region}/${strt_date}/${strt_hour}"
+log_file="${src_dir}/nwr_log"
+command_list="${script_dir}/command_list_${project}_${region}_${strt_date}_${strt_hour}"
+fil_list="${script_dir}/fil_list_${region}_${strt_date}_${strt_hour}"
+
+while true
+do
+   if grep -q "Starting wrf.exe:" ${log_file}
+   then
+      break
+   fi
+done
+
+if [ -f "${command_list}" ]
+then
+   rm -rf ${command_list}
+fi
+touch ${command_list}
+
+if [ -f "${fil_list}" ]
+then
+   rm -rf ${fil_list}
+fi
+touch ${fil_list}
+
+count=0 
+while true;
+do
+   date_time=$( date -u '+%Y%m%d%H%M%S' )
+   touch ${command_list}_${date_time}
+
+   if compgen -G "${src_dir}/wrfout*" > /dev/null;
+   then
+      for fil in ${src_dir}/wrfout*;
+      do
+         if grep -q ${fil} ${fil_list};
+         then
+  	    echo "############################################################################################################################"
+            echo "File \"${fil}\" already processed."
+            echo "############################################################################################################################"
+         else
+            base_fil=$( basename ${fil} ) 
+            dom=$( echo ${base_fil} | awk -F "_" '{print $2}' )
+
+            while IFS= read -r var_line; do
+               var_line_head=$( echo ${var_line} | awk -F ":" '{print $1}' )
+               if [ "${var_line_head}" == "s_lev_vars" ]
+               then
+                  for var in $( echo ${var_line} | awk -F ":" '{print $2}' )
+                  do
+                     var1=$( echo ${var} | tr -d , )
 #	             dest_dir="${base_dest_dir}/${dom}/${var1}/"
-#	             if [ ! -d ${dest_dir} ]
-#                     then
-#                        mkdir -p ${dest_dir}
-#	             fi
-#	             echo "ncl 'dom=\"${dom}\"' 'dest=\"${dest_dir}\"' 'a=addfile(\"${fil}\", \"r\")' ${script_dir}/ncl/${var1}.ncl" >> ${script_dir}/command_list_${region}_${strt_date}_${strt_hour}_${date_time}
-#                  done
+		     dest_dir="${base_dest_dir}/maps/${dom}/${var1}/"
+	             if [ ! -d ${dest_dir} ]
+                     then
+                        mkdir -p ${dest_dir}
+	             fi
+		     echo "python ${script_dir}/../WRF_python/map_${var1}.py ${fil} ${dest_dir}" >> ${command_list}_${date_time}
+#         	     echo "ncl 'dom=\"${dom}\"' 'dest=\"${dest_dir}\"' 'a=addfile(\"${fil}\", \"r\")' ${script_dir}/ncl/${var1}.ncl"# >> ${script_dir}/command_list_${region}_${strt_date}_${strt_hour}_${date_time}
+                  done
 #               elif [ "${var_line_head}" == "m_lev_vars" ]
 #               then
 #                  IFS=',' read -ra vars_plevs  <<< "$( echo ${var_line} | awk -F ":" '{print $2}' )"
@@ -173,28 +170,30 @@ base_dest_dir="/home/earajr/ncl_plotting/scripts/images/${region}/${strt_date}/$
 #                     done < ${namelist_locs}
 #	          echo "ncl ${var1}"
 #	          done
-#	       fi
-#            done < ${namelist_vars}
-#            echo ${fil} >> ${fil_list}
-#         fi
-#      done
-#      parallel -j 10 < ${command_list}_${date_time}
-#      cat ${command_list}_${date_time} >> ${command_list}
-#   fi
-#   rm -rf ${command_list}_${date_time}
-#   sleep 30s
-#
-#   if grep -q ${end_time} ${fil_list}
-#   then
-#      ((count+=1))
-#      echo ${count}
-#      if (( ${count} > 2 ))
-#      then
-#         break
-#      fi
-#   fi
-#done
-#
-#rm -rf ${fil_list}
-#rm -rf ${command_list}
+	       fi
+            done < ${namelist_vars}
+            echo ${fil} >> ${fil_list}
+         fi
+      done
+      echo "Attempting to run plotting in parallel!"
+      parallel -j 10 < ${command_list}_${date_time}
+      cat ${command_list}_${date_time} >> ${command_list}
+   fi
+   rm -rf ${command_list}_${date_time}
+   sleep 30s
+
+   if grep -q ${end_time} ${fil_list}
+   then
+      ((count+=1))
+      echo ${count}
+      if (( ${count} > 2 ))
+      then
+         break
+      fi
+   fi
+   break
+done
+
+rm -rf ${fil_list}
+rm -rf ${command_list}
 

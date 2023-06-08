@@ -183,7 +183,7 @@ def map_maxCAPE(x):
                [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
                cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
                cbbox.set_facecolor([1,1,1,0.7])
-               cbbox.text(0.5,0.3, "Maximum CAPE (J/kg)", verticalalignment='center', horizontalalignment='center')
+               cbbox.text(0.5,0.3, "Maximum CAPE  (J/kg)", verticalalignment='center', horizontalalignment='center')
                cbbox.text(0.75,0.15, u'$\u25CF$'+" RH between LCL and LFC (over 60%)", verticalalignment='center', horizontalalignment='center', color='black')
                cbbox.text(0.25,0.15, "Maximum CIN (J/kg)", verticalalignment='center', horizontalalignment='center', color='red')
                cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
@@ -227,7 +227,8 @@ if __name__ == "__main__":
    import matplotlib.pyplot as plt
 
 # Define destination directory
-   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/maxCAPE"
+#   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/maxCAPE"
+   dest_dir = sys.argv[2]
    if not os.path.isdir(dest_dir):
        os.makedirs(dest_dir)
 
@@ -254,12 +255,16 @@ if __name__ == "__main__":
          map_names.append(row)
 
    if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
-      print("Number of map limit latitudes, longitudes and map names is correct continuing with cross section generation.")
+      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
    else:
       raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
 
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
+   base_wrf_fil = os.path.basename(wrf_fil)
+   dom = base_wrf_fil.split("_")[1]
+   date = base_wrf_fil.split("_")[2]
+   time = base_wrf_fil.split("_")[3].replace(":", "-")
 
 # Loop through maps, create input dictionary for each map and pass it to the map_maxCAPE function above
    for i in np.arange(0, np.shape(limit_lats)[0], 1):
@@ -271,5 +276,5 @@ if __name__ == "__main__":
 
       fig = map_maxCAPE(input_dict)
 
-      plt.savefig(dest_dir+"/maxCAPEtest_"+map_names[i][0]+".png", bbox_inches='tight')
+      plt.savefig(dest_dir+"/maxCAPE_"+dom+"_"+date+"_"+time+"_"+map_names[i][0]+".png", bbox_inches='tight')
 

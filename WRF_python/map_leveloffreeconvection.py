@@ -1,4 +1,4 @@
-def map_lcl(x):
+def map_leveloffreeconvection(x):
 
    import numpy as np
    from cartopy import crs
@@ -112,7 +112,7 @@ def map_lcl(x):
 # Read CAPE, RH and height 
 
          cape_2d = getvar(wrf_in, 'cape_2d', timeidx=i)[:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
-         lcl = cape_2d[2]
+         lfc = cape_2d[3]
 
 # Subset latitudes and longitudes
          lats = lats_all[min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
@@ -126,14 +126,14 @@ def map_lcl(x):
          gl.right_labels = False
          gl.bottom_labels = False
 
-# Plot lcl
+# Plot lfc
 
-         lcl_lvls2 = [1000, 2000, 3000, 4000, 5000, 6000, 7000]
-         lcl_contour = plt.contour(lons, lats, lcl, levels=lcl_lvls2, colors='k', transform=crs.PlateCarree())
-         plt.clabel(lcl_contour, inline=1, fontsize=10, fmt="%g")
+         lfc_lvls2 = [1000, 2000, 3000, 4000, 5000, 6000, 7000]
+         lfc_contour = plt.contour(lons, lats, lfc, levels=lfc_lvls2, colors='k', transform=crs.PlateCarree())
+         plt.clabel(lfc_contour, inline=1, fontsize=10, fmt="%g")
 
-         lcl_lvls = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000]
-         plt.contourf(lons, lats, lcl, levels=lcl_lvls, cmap='viridis', zorder=1, transform=crs.PlateCarree(), extend="both")
+         lfc_lvls = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000]
+         plt.contourf(lons, lats, lfc, levels=lfc_lvls, cmap='viridis', zorder=1, transform=crs.PlateCarree(), extend="both")
 
          if np.size(lats[:,0]) < np.size(lats[0,:]):
             portrait = True
@@ -199,7 +199,8 @@ if __name__ == "__main__":
    import matplotlib.pyplot as plt
 
 # Define destination directory
-   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/lcl"
+#   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/lfc"
+   dest_dir = sys.argv[2]
    if not os.path.isdir(dest_dir):
        os.makedirs(dest_dir)
 
@@ -226,14 +227,18 @@ if __name__ == "__main__":
          map_names.append(row)
 
    if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
-      print("Number of map limit latitudes, longitudes and map names is correct continuing with cross section generation.")
+      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
    else:
       raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
 
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
+   base_wrf_fil = os.path.basename(wrf_fil)
+   dom = base_wrf_fil.split("_")[1]
+   date = base_wrf_fil.split("_")[2]
+   time = base_wrf_fil.split("_")[3].replace(":", "-")
 
-# Loop through maps, create input dictionary for each map and pass it to the map_lcl function above
+# Loop through maps, create input dictionary for each map and pass it to the map_leveloffreeconvection function above
    for i in np.arange(0, np.shape(limit_lats)[0], 1):
       input_dict = {}
       input_dict["latitudes"] = limit_lats[i]
@@ -241,7 +246,7 @@ if __name__ == "__main__":
       input_dict["infile"] = wrf_fil
       input_dict["locationname"] = map_names[i]
 
-      fig = map_lcl(input_dict)
+      fig = map_leveloffreeconvection(input_dict)
 
-      plt.savefig(dest_dir+"/lcltest_"+map_names[i][0]+".png", bbox_inches='tight')
+      plt.savefig(dest_dir+"/leveloffreeconvection_"+dom+"_"+date+"_"+time+"_"+map_names[i][0]+".png", bbox_inches='tight')
 

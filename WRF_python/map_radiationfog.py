@@ -1,4 +1,3 @@
-# Calculation of the risk of radiation fog (and the consequent risk of freezing fog) based on the Craddock and Pritchard method.
 def map_radiationfog(x):
 
    import numpy as np
@@ -291,7 +290,8 @@ if __name__ == "__main__":
    import matplotlib.pyplot as plt
 
 # Define destination directory
-   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/radiationfog"
+#   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/radiationfog"
+   dest_dir = sys.argv[2]
    if not os.path.isdir(dest_dir):
        os.makedirs(dest_dir)
 
@@ -324,6 +324,10 @@ if __name__ == "__main__":
 
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
+   base_wrf_fil = os.path.basename(wrf_fil)
+   dom = base_wrf_fil.split("_")[1]
+   date = base_wrf_fil.split("_")[2]
+   time = base_wrf_fil.split("_")[3].replace(":", "-")
 
 # Loop through maps, create input dictionary for each map and pass it to the map_radiationfog function above
    for i in np.arange(0, np.shape(limit_lats)[0], 1):
@@ -335,5 +339,5 @@ if __name__ == "__main__":
 
       fig = map_radiationfog(input_dict)
 
-      plt.savefig(dest_dir+"/fogtest_"+map_names[i][0]+".png", bbox_inches='tight')
+      plt.savefig(dest_dir+"/radiationfog_"+dom+"_"+date+"_"+time+"_"+map_names[i][0]+".png", bbox_inches='tight')
 

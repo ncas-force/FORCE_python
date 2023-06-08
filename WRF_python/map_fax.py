@@ -470,7 +470,8 @@ if __name__ == "__main__":
    import matplotlib.pyplot as plt
 
 # Define destination directory
-   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/fax"
+#   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/fax"
+   dest_dir = sys.argv[2]
    if not os.path.isdir(dest_dir):
        os.makedirs(dest_dir)
 
@@ -497,12 +498,16 @@ if __name__ == "__main__":
            map_names.append(row)
 
    if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
-      print("Number of map limit latitudes, longitudes and map names is correct continuing with cross section generation.")
+      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
    else:
       raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
 
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
+   base_wrf_fil = os.path.basename(wrf_fil)
+   dom = base_wrf_fil.split("_")[1]
+   date = base_wrf_fil.split("_")[2]
+   time = base_wrf_fil.split("_")[3].replace(":", "-")
 
 # Loop through maps, create input dictionary for each map and pass it to the map_fax function above
    for i in np.arange(0, np.shape(limit_lats)[0], 1):
@@ -514,5 +519,5 @@ if __name__ == "__main__":
 
       fig = map_fax(input_dict)
 
-      plt.savefig(dest_dir+"/faxtest_"+map_names[i][0]+".png", bbox_inches='tight')
+      plt.savefig(dest_dir+"/fax_"+dom+"_"+date+"_"+time+"_"+map_names[i][0]+".png", bbox_inches='tight')
 

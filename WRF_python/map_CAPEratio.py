@@ -1,17 +1,16 @@
-def map_jetstreams(x):
-    
+def map_CAPEratio(x):
+
    import numpy as np
    from cartopy import crs
    import matplotlib.pyplot as plt
+   from mpl_toolkits.axes_grid1.inset_locator import inset_axes
    from netCDF4 import Dataset
    import os
-   import ninept_smoother
-   from mpl_toolkits.axes_grid1.inset_locator import inset_axes
    from pyproj import Geod
 
-   from wrf import (getvar, interplevel, vertcross, CoordPair, ALL_TIMES, to_np, get_cartopy, latlon_coords, cartopy_xlim, cartopy_ylim, extract_times, extract_global_attrs, ll_to_xy, get_proj_params, getproj)
+   from wrf import (getvar, interplevel, vertcross, CoordPair, ALL_TIMES, to_np, get_cartopy, latlon_coords, cartopy_xlim, cartopy_ylim, extract_times, extract_global_attrs, ll_to_xy)
 
-# Read spatial information from input directory
+   # Read spatial information from input directory
 
    limit_lats = [float(x["latitudes"][0]), float(x["latitudes"][1])]
    limit_lons = [float(x["longitudes"][0]), float(x["longitudes"][1])]
@@ -54,10 +53,8 @@ def map_jetstreams(x):
    if not os.path.exists(wrf_fil):
       raise ValueError("Warning! "+wrf_fil+" does not exist.")
 
-# Read WRF out netcdf and read projection of WRF simulations
+# Read WRF out netcdf
    wrf_in = Dataset(wrf_fil)
-   proj = getproj(**get_proj_params(wrf_in))
-   projection = proj.cf()['grid_mapping_name']
 
 # Define geodesy
    geod = Geod(ellps='WGS84')
@@ -73,8 +70,8 @@ def map_jetstreams(x):
       sim_start_time = extract_global_attrs(wrf_in, 'SIMULATION_START_DATE')
       valid_time = str(extract_times(wrf_in, ALL_TIMES)[i])[0:22]
 
-# Read all sea level pressure
-      slp_all = getvar(wrf_in, 'slp', timeidx=i)[:,:]
+# Read all relative humidity
+      rh_all = getvar(wrf_in, 'rh', timeidx=i)[0,:,:]
 
 # Check that the supplied lat and lon values are within the WRF domain, if not then the plot will not be created.
       if limit_id == "all":
@@ -85,9 +82,9 @@ def map_jetstreams(x):
          x2_y2 = ll_to_xy(wrf_in, limit_lats[1], limit_lons[1])
 
 # Read projection from a variable (will be able to detect all possible WRF projections and use them for plotting) also identify the required max and min indices 
-      if x1_y1[1] >= 0 and x1_y1[1] < np.shape(slp_all)[0] and x1_y1[0] >= 0 and x1_y1[0] < np.shape(slp_all)[1] and x2_y2[1] >= 0 and x2_y2[1] < np.shape(slp_all)[0] and x2_y2[0] >= 0 and x2_y2[0] < np.shape(slp_all)[1]:
-         cart_proj = get_cartopy(slp_all)
-         lats_all, lons_all = latlon_coords(slp_all)
+      if x1_y1[1] >= 0 and x1_y1[1] < np.shape(rh_all)[0] and x1_y1[0] >= 0 and x1_y1[0] < np.shape(rh_all)[1] and x2_y2[1] >= 0 and x2_y2[1] < np.shape(rh_all)[0] and x2_y2[0] >= 0 and x2_y2[0] < np.shape(rh_all)[1]:
+         cart_proj = get_cartopy(rh_all)
+         lats_all, lons_all = latlon_coords(rh_all)
 
          if limit_id == "ullr":
             lat_lon_mask = np.where(lats_all < limit_lats[0], 1, 0) & np.where(lats_all > limit_lats[1], 1, 0) & np.where(lons_all > limit_lons[0], 1, 0) & np.where(lons_all < limit_lons[1], 1, 0)
@@ -112,41 +109,24 @@ def map_jetstreams(x):
             if k < min_lon_ind:
                min_lon_ind = k
 
-# Read pressure geopotential and winds
-         pres = getvar(wrf_in, 'pressure', timeidx=i)[:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
-         geop = getvar(wrf_in, 'geopotential', timeidx=i)[:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
+# Read CAPE and CIN values 
 
-         if projection == "mercator":
-            v = getvar(wrf_in, 'va', timeidx=i, units='m/s')[:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
-            u = getvar(wrf_in, 'ua', timeidx=i, units='m/s')[:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
-         else:
-            uv = getvar(wrf_in, 'uvmet', timeidx=i, units='m/s')
-            u = uv[0,:,min_lat_ind:max_lat_ind+1,min_lon_ind:max_lon_ind+1]
-            v = uv[1,:,min_lat_ind:max_lat_ind+1,min_lon_ind:max_lon_ind+1]
+         CAPE_CIN = getvar(wrf_in, 'cape_3d', timeidx=i)[:,:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
+         SBCAPE = CAPE_CIN[0,0,:,:]
+         
+         MUCAPE = to_np(np.amax(CAPE_CIN[0,:,:,:], 0))
+         MUCAPE_index = np.argmax(to_np(CAPE_CIN[0,:,:,:]), axis=0)
+         
+         CIN = to_np(getvar(wrf_in, 'cape_3d', timeidx=i)[1,:,:,:])
+         MUCIN = np.zeros_like(SBCAPE)
+         for j in np.arange(0,np.shape(CIN[0,:,:])[0], 1):
+            for k in np.arange(0, np.shape(CIN[0,:,:])[1], 1):
+               MUCIN[j,k] = CIN[MUCAPE_index[j,k], j, k]
 
-# Interpolate to 200 hPa
+         CAPEratio = 1.0 - np.divide(SBCAPE, MUCAPE, out=np.zeros_like(SBCAPE), where=MUCAPE!=0)
+         CAPEratio = np.where(MUCIN < -75.0, np.nan, CAPEratio)
 
-         v_200 = interplevel(v, pres, 200.0)
-         u_200 = interplevel(u, pres, 200.0)
-         geop_200 = interplevel(geop, pres, 200.0)
-
-# Calculate Geopotential height in decameters
-
-         geop_height_200 = geop_200/98.1
-
-         geop_height_200['units'] = "dam"
-
-# Apply smoothing multiple times to create more user friendly image
-         geop_height_200 = ninept_smoother.smth9(geop_height_200, 0.5, 0.25)
-         geop_height_200 = ninept_smoother.smth9(geop_height_200, 0.5, 0.25)
-         geop_height_200 = ninept_smoother.smth9(geop_height_200, 0.5, 0.25)
-         geop_height_200 = ninept_smoother.smth9(geop_height_200, 0.5, 0.25)
-
-# Calculate 200 hPa windspeed
-         ws_200 = np.sqrt((v_200**2.0) + (u_200**2.0))
-
-# Read projection from a variable (will be able to detect all possible WRF projections and use them for plotting)
-         cart_proj = get_cartopy(v_200)
+# Subset latitudes and longitudes
          lats = lats_all[min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
          lons = lons_all[min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
 
@@ -158,15 +138,10 @@ def map_jetstreams(x):
          gl.right_labels = False
          gl.bottom_labels = False
 
-# Plot geopotential height at 10 dam intervals
-         geop_height_200_lvl = np.arange(500.0, 1750.0, 10.0)
-         plt.contour(lons, lats, geop_height_200, levels=geop_height_200_lvl, colors='red', transform=crs.PlateCarree())
+# Plot CAPE
 
-# Plot 200 hPa windspeed    
-         ws_200_lvl = np.arange(5, 80, 5)
-         plt.contourf(lons, lats, ws_200, levels=ws_200_lvl, cmap='gray_r', transform=crs.PlateCarree())
-
-# Identify whether domain is portrait or landscape
+         caperatio_lvls = np.arange(0.0,1.05,0.05)
+         plt.contourf(lons, lats, CAPEratio, levels=caperatio_lvls, cmap='RdYlBu', zorder=1, transform=crs.PlateCarree())
 
          if np.size(lats[:,0]) < np.size(lats[0,:]):
             portrait = True
@@ -180,12 +155,11 @@ def map_jetstreams(x):
          if cbar_inset:
 
             if portrait:
-               cbbox = inset_axes(ax, '13%', '90%', loc = 7)
+               cbbox = inset_axes(ax, '15%', '90%', loc = 7)
                [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
                cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
                cbbox.set_facecolor([1,1,1,0.7])
-               cbbox.text(0.82,0.5, "200 hPa windspeed (m/s)", rotation=90.0, verticalalignment='center', horizontalalignment='center')
-               cbbox.text(0.95,0.5, "Geopotential height (10 dm spacing)", rotation=90.0, verticalalignment='center', horizontalalignment='center', color='red')
+               cbbox.text(0.9, 0.5, "CAPE ratio", rotation=90.0, verticalalignment='center', horizontalalignment='center')
                cbaxes = inset_axes(cbbox, '30%', '95%', loc = 6)
                cb = plt.colorbar(cax=cbaxes, aspect=20)
             else:
@@ -193,8 +167,7 @@ def map_jetstreams(x):
                [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
                cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
                cbbox.set_facecolor([1,1,1,0.7])
-               cbbox.text(0.5,0.3, "200 hPa windspeed (m/s)", verticalalignment='center', horizontalalignment='center')
-               cbbox.text(0.5,0.15, "Geopotential height (10 dm spacing)", verticalalignment='center', horizontalalignment='center', color='red')
+               cbbox.text(0.5,0.1, "CAPE ratio", verticalalignment='center', horizontalalignment='center')
                cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
                cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
          else:
@@ -202,8 +175,7 @@ def map_jetstreams(x):
             [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
             cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
             cbbox.set_facecolor([1,1,1,0.7])
-            cbbox.text(0.5,0.3, "200 hPa windspeed (m/s)", verticalalignment='center', horizontalalignment='center')
-            cbbox.text(0.5,0.15, "Geopotential height (10 dm spacing)", verticalalignment='center', horizontalalignment='center', color='red')
+            cbbox.text(0.5,0.1, "CAPE ratio", verticalalignment='center', horizontalalignment='center')
             cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
             cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
 
@@ -213,21 +185,15 @@ def map_jetstreams(x):
          tsbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
          tsbox.set_facecolor([1,1,1,1])
 
-         sim_start_time = extract_global_attrs(wrf_in, 'SIMULATION_START_DATE')
-         valid_time = str(extract_times(wrf_in, ALL_TIMES)[i])[0:22]
-
          tsbox.text(0.01, 0.45, "Start date: "+sim_start_time['SIMULATION_START_DATE'], verticalalignment='center', horizontalalignment='left')
          tsbox.text(0.99, 0.45, "Valid_date: "+valid_time, verticalalignment='center', horizontalalignment='right')
-
-# Add wind vectors after thinning.
-         thin = [int(x/15.) for x in lons.shape]
-         ax.quiver(to_np(lons[::thin[0],::thin[1]]), to_np(lats[::thin[0],::thin[1]]), to_np(u_200[::thin[0],::thin[1]]), to_np(v_200[::thin[0],::thin[1]]), pivot='middle', transform=crs.PlateCarree())
 
 # Return figure
          return(fig)
 
       else:
          print("Charts can only be generated for regions that are inside the WRF domain")
+
 
 ###############################################################################################################################################################################################
 # If the script is called as the main script then this part of the code is exectued first. The plotting section above can be called seperately as a module using a dictionary as the only input.
@@ -241,7 +207,7 @@ if __name__ == "__main__":
    import matplotlib.pyplot as plt
 
 # Define destination directory
-#   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/jetstreams"
+#   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/maxCAPE"
    dest_dir = sys.argv[2]
    if not os.path.isdir(dest_dir):
        os.makedirs(dest_dir)
@@ -288,6 +254,6 @@ if __name__ == "__main__":
       input_dict["infile"] = wrf_fil
       input_dict["locationname"] = map_names[i]
 
-      fig = map_jetstreams(input_dict)
+      fig = map_CAPEratio(input_dict)
 
-      plt.savefig(dest_dir+"/jetstreams_"+dom+"_"+date+"_"+time+"_"+map_names[i][0]+".png", bbox_inches='tight')
+      plt.savefig(dest_dir+"/CAPEratio_"+dom+"_"+date+"_"+time+"_"+map_names[i][0]+".png", bbox_inches='tight')
