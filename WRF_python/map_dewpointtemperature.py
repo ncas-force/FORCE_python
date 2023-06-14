@@ -242,66 +242,87 @@ if __name__ == "__main__":
    import matplotlib.pyplot as plt
 
 # Define destination directory
-   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/dewpointtemperature"
+#   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/dewpointtemperature"
+   dest_dir = sys.argv[2]
    if not os.path.isdir(dest_dir):
        os.makedirs(dest_dir)
 
-# Define input directory
-   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
-
+## Define input directory
+#   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
+#
    limit_lats = []
    limit_lons = []
    map_names = []
    map_leveltype = []
    map_level = []
-
-   with open(input_dir+"/map_limit_lats", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           limit_lats.append(row)
-
-   with open(input_dir+"/map_limit_lons", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           limit_lons.append(row)
-
-   with open(input_dir+"/map_names", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           map_names.append(row)
-
-   with open(input_dir+"/map_leveltype", "r") as file:
-      reader = csv.reader(file)
-      for row in reader:
-         map_leveltype.append(row)
-
-   with open(input_dir+"/map_level", "r") as file:
-      reader = csv.reader(file)
-      for row in reader:
-         map_level.append(row)
-
-
-   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
-      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
-   else:
-      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
+#
+#   with open(input_dir+"/map_limit_lats", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           limit_lats.append(row)
+#
+#   with open(input_dir+"/map_limit_lons", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           limit_lons.append(row)
+#
+#   with open(input_dir+"/map_names", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           map_names.append(row)
+#
+#   with open(input_dir+"/map_leveltype", "r") as file:
+#      reader = csv.reader(file)
+#      for row in reader:
+#         map_leveltype.append(row)
+#
+#   with open(input_dir+"/map_level", "r") as file:
+#      reader = csv.reader(file)
+#      for row in reader:
+#         map_level.append(row)
+#
+#
+#   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
+#      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
+#   else:
+#      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
 
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
+   base_wrf_fil = os.path.basename(wrf_fil)
+   dom = base_wrf_fil.split("_")[1]
+   date = base_wrf_fil.split("_")[2]
+   time = base_wrf_fil.split("_")[3].replace(":", "-")
 
-# Loop through maps, create input dictionary for each map and pass it to the map_dewpointtemperature function above
+# Input level information as an argument
 
-   for i in np.arange(0, np.shape(limit_lats)[0], 1):
+   level_flag = sys.argv[3]
+   leveltype_flag = level_flag[0]
+   if leveltype_flag == "p":
+      map_leveltype = "pressure"
+   if leveltype_flag == "a":
+      map_leveltype = "altitude"
+   map_level.append(level_flag[1:])
 
-      input_dict = {}
-      input_dict["latitudes"] = limit_lats[i]
-      input_dict["longitudes"] = limit_lons[i]
-      input_dict["infile"] = wrf_fil
-      input_dict["locationname"] = map_names[i]
-      input_dict["leveltype"] = map_leveltype[i][0]
-      input_dict["levels"] = map_level[i]
+# Input map information
 
-      fig = map_dewpointtemperature(input_dict)
+   map_names.append(sys.argv[4])
+   limit_lats.append(sys.argv[5])
+   limit_lats.append(sys.argv[6])
+   limit_lons.append(sys.argv[7])
+   limit_lons.append(sys.argv[8])
 
-      plt.savefig(dest_dir+"/dewpointtemperaturetest_"+map_names[i][0]+".png", bbox_inches='tight')
+# Create input dictionary for each map and pass it to the map_dewpointtemperature function above
+
+   input_dict = {}
+   input_dict["latitudes"] = limit_lats
+   input_dict["longitudes"] = limit_lons
+   input_dict["infile"] = wrf_fil
+   input_dict["locationname"] = map_names
+   input_dict["leveltype"] = map_leveltype
+   input_dict["levels"] = map_level
+
+   fig = map_dewpointtemperature(input_dict)
+
+   plt.savefig(dest_dir+"/dewpointtemperature_"+dom+"_"+date+"_"+time+"_"+map_names[0]+".png", bbox_inches='tight')
 

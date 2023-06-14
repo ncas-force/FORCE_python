@@ -185,7 +185,7 @@ def map_cape3d(x):
                [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
                cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
                cbbox.set_facecolor([1,1,1,0.7])
-               cbbox.text(0.5,0.3, colorbartext, verticalalignment='center', horizontalalignment='center')
+               cbbox.text(0.5,0.1, colorbartext, verticalalignment='center', horizontalalignment='center')
                cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
                cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
          else:
@@ -193,7 +193,7 @@ def map_cape3d(x):
             [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
             cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
             cbbox.set_facecolor([1,1,1,0.7])
-            cbbox.text(0.5,0.3, colorbartext, verticalalignment='center', horizontalalignment='center')
+            cbbox.text(0.5,0.1, colorbartext, verticalalignment='center', horizontalalignment='center')
             cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
             cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
 
@@ -230,162 +230,86 @@ if __name__ == "__main__":
    import matplotlib.pyplot as plt
 
 # Define destination directory
-   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/cape3d"
+#   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/cape3d"
+   dest_dir = sys.argv[2]
    if not os.path.isdir(dest_dir):
        os.makedirs(dest_dir)
 
-# Define input directory
-   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
-
+## Define input directory
+#   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
+#
    limit_lats = []
    limit_lons = []
    map_names = []
    map_leveltype = []
    map_level = []
-
-   with open(input_dir+"/map_limit_lats", "r") as file:
-      reader = csv.reader(file)
-      for row in reader:
-         limit_lats.append(row)
-
-   with open(input_dir+"/map_limit_lons", "r") as file:
-      reader = csv.reader(file)
-      for row in reader:
-         limit_lons.append(row)
-
-   with open(input_dir+"/map_names", "r") as file:
-      reader = csv.reader(file)
-      for row in reader:
-         map_names.append(row)
-
-   with open(input_dir+"/map_leveltype", "r") as file:
-      reader = csv.reader(file)
-      for row in reader:
-         map_leveltype.append(row)
-
-   with open(input_dir+"/map_level", "r") as file:
-      reader = csv.reader(file)
-      for row in reader:
-         map_level.append(row)
-
-   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
-      print("Number of map limit latitudes, longitudes and map names is correct continuing with cross section generation.")
-   else:
-      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
+#
+#   with open(input_dir+"/map_limit_lats", "r") as file:
+#      reader = csv.reader(file)
+#      for row in reader:
+#         limit_lats.append(row)
+#
+#   with open(input_dir+"/map_limit_lons", "r") as file:
+#      reader = csv.reader(file)
+#      for row in reader:
+#         limit_lons.append(row)
+#
+#   with open(input_dir+"/map_names", "r") as file:
+#      reader = csv.reader(file)
+#      for row in reader:
+#         map_names.append(row)
+#
+#   with open(input_dir+"/map_leveltype", "r") as file:
+#      reader = csv.reader(file)
+#      for row in reader:
+#         map_leveltype.append(row)
+#
+#   with open(input_dir+"/map_level", "r") as file:
+#      reader = csv.reader(file)
+#      for row in reader:
+#         map_level.append(row)
+#
+#   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
+#      print("Number of map limit latitudes, longitudes and map names is correct continuing with cross section generation.")
+#   else:
+#      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
 
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
+   base_wrf_fil = os.path.basename(wrf_fil)
+   dom = base_wrf_fil.split("_")[1]
+   date = base_wrf_fil.split("_")[2]
+   time = base_wrf_fil.split("_")[3].replace(":", "-")
 
-# Loop through maps, create input dictionary for each map and pass it to the map_cape3d function above
-   for i in np.arange(0, np.shape(limit_lats)[0], 1):
-      input_dict = {}
-      input_dict["latitudes"] = limit_lats[i]
-      input_dict["longitudes"] = limit_lons[i]
-      input_dict["infile"] = wrf_fil
-      input_dict["locationname"] = map_names[i]
-      input_dict["leveltype"] = map_leveltype[i][0]
-      input_dict["levels"] = map_level[i]
+# Input level information as an argument
 
-      fig = map_cape3d(input_dict)
+   level_flag = sys.argv[3]
+   leveltype_flag = level_flag[0]
+   if leveltype_flag == "p":
+      map_leveltype = "pressure"
+   if leveltype_flag == "a":
+      map_leveltype = "altitude"
+   map_level.append(level_flag[1:])
 
-      plt.savefig(dest_dir+"/cape3dtest_"+map_names[i][0]+".png", bbox_inches='tight')
+# Input map information
 
+   map_names.append(sys.argv[4])
+   limit_lats.append(sys.argv[5])
+   limit_lats.append(sys.argv[6])
+   limit_lons.append(sys.argv[7])
+   limit_lons.append(sys.argv[8])
 
-## Input WRF out file and pressure levels as arguments (full path)
-#
-#wrf_fil = sys.argv[1]
-#levels = sys.argv[2:]
-#
-## Define destination direction
-#for level in levels:
-#   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/eth/"+str(level)
-#   print(dest_dir)
-#   if not os.path.isdir(dest_dir):
-#      os.makedirs(dest_dir)
-#
-## Check for existance of WRF out file
-#if not os.path.exists(wrf_fil):
-#    raise ValueError("Warning! "+wrf_fil+" does not exist.")
-#
-## Read WRF out netcdf
-#wrf_in= Dataset(wrf_fil)
-#
-## Extract the number of times within the WRF file and loop over all times in file
-#num_times = np.size(extract_times(wrf_in, ALL_TIMES))
-#
-#for i in np.arange(0, num_times, 1):
-#
-## Read pressure geopotential and winds
-#   pres = getvar(wrf_in, 'pressure', timeidx=i)
-#   theta_e = getvar(wrf_in, 'theta_e', timeidx=i)
-#
-## Read projection from a variable (will be able to detect all possible WRF projections and use them for plotting) 
-#   cart_proj = get_cartopy(theta_e)
-#   lats, lons = latlon_coords(theta_e)
-#
-## Loop over pressure levels and check that they are sensible
-#
-#   for j in np.arange(0, np.shape(levels)[0], 1):
-#      dest_dir = "/home/earajr/FORCE_WRF_plotting/output/eth/"+str(levels[j])
-#
-# Interpolate to current pressure level
-#
-#      theta_e_level = interplevel(theta_e, pres, levles[j])
-#
-## Create figure and axes
-#      fig = plt.figure(figsize=(10,10))
-#      ax = plt.axes(projection=cart_proj)
-#      ax.coastlines(linewidth=0.5)
-#
-## Plot theta_e
-#      theta_e_lvl = np.arange(280.0, 350.0, 1.0)
-#      plt.contourf(lons, lats, theta_e_level, levels=theta_e_lvl, cmap='CMRmap', transform=crs.PlateCarree())
-#
-## Identify whether domain is portrait or landscape
-#
-#      if np.size(lats[:,0]) < np.size(lats[0,:]):
-#         portrait = True
-#      else:
-#         portrait = False
-#
-## Create inset colourbar
-#
-#      if portrait:
-#         cbbox = inset_axes(ax, '13%', '90%', loc = 7)
-#         [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
-#         cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
-#         cbbox.set_facecolor([1,1,1,0.7])
-##         cbbox.text(0.7,0.5, "200 hPa windspeed (m/s)", rotation=90.0, verticalalignment='center', horizontalalignment='center')
-##         cbbox.text(0.85,0.5, "Geopotential height (10 dm spacing)", rotation=90.0, verticalalignment='center', horizontalalignment='center', color='red')
-#         cbaxes = inset_axes(cbbox, '30%', '95%', loc = 6)
-#         cb = plt.colorbar(cax=cbaxes, aspect=20)
-#      else:
-#         cbbox = inset_axes(ax, '90%', '12%', loc = 8)
-#         [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
-#         cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
-##         cbbox.set_facecolor([1,1,1,0.7])
-##         cbbox.text(0.5,0.3, "200 hPa windspeed (m/s)", verticalalignment='center', horizontalalignment='center')
-#         cbbox.text(0.5,0.15, "Geopotential height (10 dm spacing)", verticalalignment='center', horizontalalignment='center', color='red')
-#         cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
-#         cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
-#
-## Add inset timestamp
-#      tsbox = inset_axes(ax, '95%', '3%', loc = 9)
-#      [tsbox.spines[k].set_visible(False) for k in tsbox.spines]
-#      tsbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
-#      tsbox.set_facecolor([1,1,1,1])
-#
-#      sim_start_time = extract_global_attrs(wrf_in, 'SIMULATION_START_DATE')
-#      valid_time = str(extract_times(wrf_in, ALL_TIMES)[i])[0:22]
-#
-##   print(sim_start_time['SIMULATION_START_DATE'])
-#
-#      tsbox.text(0.01, 0.45, "Start date: "+sim_start_time['SIMULATION_START_DATE'], verticalalignment='center', horizontalalignment='left')
-#      tsbox.text(0.99, 0.45, "Valid_date: "+valid_time, verticalalignment='center', horizontalalignment='right')
-#
-## Save image
-#
-#      grid_id = extract_global_attrs(wrf_in, 'GRID_ID')['GRID_ID']
-#      
-#      plt.savefig(dest_dir+"/eth"+str(levels[j])+"_d0"+str(grid_id)+"_"+sim_start_time['SIMULATION_START_DATE']+"_valid_"+valid_time[0:16]+".png", bbox_inches='tight')
-#      plt.close()
+# Create input dictionary for each map and pass it to the map_cape3d function above
+
+   input_dict = {}
+   input_dict["latitudes"] = limit_lats
+   input_dict["longitudes"] = limit_lons
+   input_dict["infile"] = wrf_fil
+   input_dict["locationname"] = map_names
+   input_dict["leveltype"] = map_leveltype
+   input_dict["levels"] = map_level
+
+   fig = map_cape3d(input_dict)
+
+   plt.savefig(dest_dir+"/cape3d_"+dom+"_"+date+"_"+time+"_"+level_flag+"_"+map_names[0]+".png", bbox_inches='tight')
+

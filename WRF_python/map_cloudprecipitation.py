@@ -238,9 +238,9 @@ def map_cloudprecipitation(x):
                [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
                cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
                cbbox.set_facecolor([1,1,1,0.7])
-               cbbox.text(0.5,0.28, "1 hour accumulated precipitation (mm)", verticalalignment='center', horizontalalignment='center')
-               cbbox.text(0.75,0.1, u'$\u00D7$'+" Chance of snow", verticalalignment='center', horizontalalignment='center', color='black')
-               cbbox.text(0.25,0.1, "Cloud cover (white background shading)", verticalalignment='center', horizontalalignment='center', color='black')
+               cbbox.text(0.5,0.18, "1 hour accumulated precipitation (mm)", verticalalignment='center', horizontalalignment='center')
+               cbbox.text(0.75,0.0, u'$\u00D7$'+" Chance of snow", verticalalignment='center', horizontalalignment='center', color='black')
+               cbbox.text(0.25,0.0, "Cloud cover (white background shading)", verticalalignment='center', horizontalalignment='center', color='black')
                cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
                cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
          else:
@@ -248,7 +248,9 @@ def map_cloudprecipitation(x):
             [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
             cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
             cbbox.set_facecolor([1,1,1,0.7])
-            cbbox.text(0.5,0.3, "1 hour accumulated precipitation (mm)", verticalalignment='center', horizontalalignment='center')
+            cbbox.text(0.5,0.18, "1 hour accumulated precipitation (mm)", verticalalignment='center', horizontalalignment='center')
+            cbbox.text(0.75,0.0, u'$\u00D7$'+" Chance of snow", verticalalignment='center', horizontalalignment='center', color='black')
+            cbbox.text(0.25,0.0, "Cloud cover (white background shading)", verticalalignment='center', horizontalalignment='center', color='black')
             cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
             cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
 
@@ -286,32 +288,32 @@ if __name__ == "__main__":
    if not os.path.isdir(dest_dir):
        os.makedirs(dest_dir)
 
-# Define input directory
-   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
-
+## Define input directory
+#   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
+#
    limit_lats = []
    limit_lons = []
    map_names = []
-
-   with open(input_dir+"/map_limit_lats", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           limit_lats.append(row)
-
-   with open(input_dir+"/map_limit_lons", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           limit_lons.append(row)
-
-   with open(input_dir+"/map_names", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           map_names.append(row)
-
-   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
-      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
-   else:
-      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
+#
+#   with open(input_dir+"/map_limit_lats", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           limit_lats.append(row)
+#
+#   with open(input_dir+"/map_limit_lons", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           limit_lons.append(row)
+#
+#   with open(input_dir+"/map_names", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           map_names.append(row)
+#
+#   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
+#      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
+#   else:
+#      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
 
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
@@ -320,16 +322,22 @@ if __name__ == "__main__":
    date = base_wrf_fil.split("_")[2]
    time = base_wrf_fil.split("_")[3].replace(":", "-")
 
-# Loop through maps, create input dictionary for each map and pass it to the map_cloudprecipitation function above
+# Input map information
 
-   for i in np.arange(0, np.shape(limit_lats)[0], 1):
+   map_names.append(sys.argv[3])
+   limit_lats.append(sys.argv[4])
+   limit_lats.append(sys.argv[5])
+   limit_lons.append(sys.argv[6])
+   limit_lons.append(sys.argv[7])
 
-      input_dict = {}
-      input_dict["latitudes"] = limit_lats[i]
-      input_dict["longitudes"] = limit_lons[i]
-      input_dict["infile"] = wrf_fil
-      input_dict["locationname"] = map_names[i]
+# Create input dictionary for each map and pass it to the map_cloudprecipitation function above
 
-      fig = map_cloudprecipitation(input_dict)
+   input_dict = {}
+   input_dict["latitudes"] = limit_lats
+   input_dict["longitudes"] = limit_lons
+   input_dict["infile"] = wrf_fil
+   input_dict["locationname"] = map_names
 
-      plt.savefig(dest_dir+"/cloudprecipitation_"+dom+"_"+date+"_"+time+"_"+map_names[i][0]+".png", bbox_inches='tight')
+   fig = map_cloudprecipitation(input_dict)
+
+   plt.savefig(dest_dir+"/cloudprecipitation_"+dom+"_"+date+"_"+time+"_"+map_names[0]+".png", bbox_inches='tight')

@@ -323,74 +323,92 @@ if __name__ == "__main__":
    import matplotlib.pyplot as plt
 
 # Define destination directory
-   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/Txsection"
+#   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/Txsection"
+   dest_dir = sys.argv[2]
    if not os.path.isdir(dest_dir):
        os.makedirs(dest_dir)
 
-# Define input directory
-   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
-
-# Waypoint lat, lons and altitudes
+## Define input directory
+#   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
+#
+## Waypoint lat, lons and altitudes
    wp_lats = []
    wp_lons = []
    wp_alts = []
    base_alts = []
    top_alts = []
    xsection_ids = []
-
-   with open(input_dir+"/xsection_lats", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           wp_lats.append(row)
-
-   with open(input_dir+"/xsection_lons", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           wp_lons.append(row)
-
-   with open(input_dir+"/xsection_alts", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           wp_alts.append(row)
-
-   with open(input_dir+"/base_alts", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           base_alts.append(row)
-
-   with open(input_dir+"/top_alts", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           top_alts.append(row)
-
-   with open(input_dir+"/xsection_ids", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           xsection_ids.append(row)
-
-# Check to see if the number of arrays provided in lat, lon and alt files match
-   if (np.shape(wp_lats)[0] == np.shape(wp_lons)[0] == np.shape(wp_alts)[0] == np.size(base_alts) == np.size(top_alts)== np.size(xsection_ids)):
-      print("Number of cross section arrays and base and top altitudes provided is correct continuing with cross section generation.")
-   else:
-      raise ValueError("The number of cross section arrays or base/top altitudes in the input directory does not match, please check that the cross section information provided is correct")
+#
+#   with open(input_dir+"/xsection_lats", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           wp_lats.append(row)
+#
+#   with open(input_dir+"/xsection_lons", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           wp_lons.append(row)
+#
+#   with open(input_dir+"/xsection_alts", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           wp_alts.append(row)
+#
+#   with open(input_dir+"/base_alts", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           base_alts.append(row)
+#
+#   with open(input_dir+"/top_alts", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           top_alts.append(row)
+#
+#   with open(input_dir+"/xsection_ids", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           xsection_ids.append(row)
+#
+## Check to see if the number of arrays provided in lat, lon and alt files match
+#   if (np.shape(wp_lats)[0] == np.shape(wp_lons)[0] == np.shape(wp_alts)[0] == np.size(base_alts) == np.size(top_alts)== np.size(xsection_ids)):
+#      print("Number of cross section arrays and base and top altitudes provided is correct continuing with cross section generation.")
+#   else:
+#      raise ValueError("The number of cross section arrays or base/top altitudes in the input directory does not match, please check that the cross section information provided is correct")
 
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
+   base_wrf_fil = os.path.basename(wrf_fil)
+   dom = base_wrf_fil.split("_")[1]
+   date = base_wrf_fil.split("_")[2]
+   time = base_wrf_fil.split("_")[3].replace(":", "-")
 
-# Loop through cross sections, create input dictionary for each cross section and pass it to the crossection_temperature function above
-   for i in np.arange(0, np.shape(wp_lats)[0], 1):
-      input_dict = {}
-      input_dict["latitudes"] = wp_lats[i]
-      input_dict["longitudes"] = wp_lons[i]
-      input_dict["leveltype"] = "altitude"
-      input_dict["levels"] = [base_alts[i][0], top_alts[i][0]]
-      input_dict["alts"] = wp_alts[i]
-      input_dict["infile"] = wrf_fil
-      input_dict["windvector"] = "True"
-      input_dict["locationname"] = xsection_ids[i][0]
+# Input crosssection information
 
-      fig = crosssection_temperature(input_dict)
+   wp_lats.append(sys.argv[3].split(","))
+   wp_lons.append(sys.argv[4].split(","))
+   wp_alts.append(sys.argv[5].split(","))
+   base_alts.append(sys.argv[6])
+   top_alts.append(sys.argv[7])
+   xsection_ids.append(sys.argv[8])
 
-      plt.savefig(dest_dir+"/test_"+str(xsection_ids[i][0])+".png", bbox_inches='tight')
+# Create input dictionary for each cross section and pass it to the crossection_temperature function above
+
+   input_dict = {}
+   input_dict["latitudes"] = [float(i) for i in wp_lats[0]]
+   input_dict["longitudes"] = [float(i) for i in wp_lons[0]]
+   input_dict["leveltype"] = "altitude"
+   input_dict["levels"] = [float(base_alts[0]), float(top_alts[0])]
+   input_dict["alts"] = [float(i) for i in wp_alts[0]]
+   input_dict["infile"] = wrf_fil
+   input_dict["windvector"] = "True"
+   input_dict["locationname"] = xsection_ids[0]
+
+   print(input_dict)
+
+   fig = crosssection_temperature(input_dict)
+
+   if fig:
+
+      plt.savefig(dest_dir+"/temperature_crosssection_"+dom+"_"+date+"_"+time+"_"+xsection_ids[0]+".png", bbox_inches='tight')
 
 

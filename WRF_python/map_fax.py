@@ -156,9 +156,15 @@ def map_fax(x):
 
             temp_theta_e = interplevel(theta_e, pres, plev)
             temp_theta_w = 45.114 - (51.489*(273.15/temp_theta_e)**3.504)  # calculate theta_w from theta e using Scheid method
-            temp_grad = calc_gradient.calc_gradient(temp_theta_w, to_np(lats), to_np(lons))
+            if projection == "mercator":
+               temp_grad = calc_gradient.calc_gradient(temp_theta_w, to_np(lats), to_np(lons))
+            else:
+               temp_grad = calc_gradient.calc_gradient_dx(temp_theta_w, dx)
             temp_grad_mag = np.sqrt((temp_grad[0]**2.0) + (temp_grad[1]**2.0))
-            theta_w_plev_grad_temp = temp_grad_mag.to("1 / kilometer")
+            try:
+               theta_w_plev_grad_temp = temp_grad_mag.to("1 / kilometer")
+            except:
+               theta_w_plev_grad_temp = temp_grad_mag
             theta_w_plev_grad = gaussian(theta_w_plev_grad_temp, sigma=sigma)
 
             v_plev = interplevel(v, pres, plev)
@@ -169,11 +175,16 @@ def map_fax(x):
 # Loop through a wide range of thresholds for theta w gradient (this should allow for weaker gradients from lower resolution simulations to be captured
 # for each thresholded image the resultant binary is thinned to contiguous regions, all thresholded and thinned binaries are summed.
 
-            for thresh in np.arange(0.001, 0.08, 0.001):
+            minthresh = (np.nanmax(theta_w_plev_grad)+np.nanmin(theta_w_plev_grad))/3.0
+            maxthresh = np.nanmax(theta_w_plev_grad) 
+
+
+#            for thresh in np.arange(0.001, 0.08, 0.001):
+            for thresh in np.linspace(minthresh, maxthresh, 100):
 
                front_id_bin = np.where((theta_w_plev_grad >= thresh), 1, 0)
                front_thinned = np.where(thin(front_id_bin) == True, 1, 0)
-               if thresh == 0.001:
+               if thresh == minthresh:
                   sum_thinned = front_thinned
                else:
                   sum_thinned = sum_thinned + front_thinned
@@ -185,9 +196,20 @@ def map_fax(x):
             front_loc_thinned = np.where(thin(front_loc_bin) == True, 1, 0)
 
 # Convert thinned front location binary to poly lines to be drawn on once other variables are plotted
-            import trace_skeleton
+            import socket
+            if socket.gethostname() == "lynxo":
+               print("lynxo")
+               from trace_skeleton_lynxo import traceSkeleton
 
-            polys = trace_skeleton.from_numpy(front_loc_thinned)
+               rects=[]
+               polys = traceSkeleton(front_loc_thinned, 0,0,front_loc_thinned.shape[1],front_loc_thinned.shape[0],10,999,rects)
+
+            else:
+               print("Not lynxo")
+               import trace_skeleton_mummra as trace_skeleton
+
+               polys = trace_skeleton.from_numpy(front_loc_thinned)
+
             polys_lat = []
             polys_lon = []
             for poly in polys:
@@ -445,8 +467,8 @@ def map_fax(x):
                ax.text(high_lons[j]+x_offset, high_lats[j]+y_offset, "%.0f" % slp[high_id0[j],high_id1[j]], fontsize=12, fontweight="bold", horizontalalignment='left',  verticalalignment='top', color='black', transform=crs.PlateCarree())
 
 
-# Add fronts using path
-   
+## Add fronts using path
+#   
             for j in np.arange(0,np.shape(polys_lat)[0], 1):
                ax.plot(polys_lon[j], polys_lat[j], linewidth=2, color='red',transform=crs.PlateCarree())
 
@@ -475,32 +497,32 @@ if __name__ == "__main__":
    if not os.path.isdir(dest_dir):
        os.makedirs(dest_dir)
 
-# Define input directory
-   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
-
+## Define input directory
+#   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
+#
    limit_lats = []
    limit_lons = []
    map_names = []
-
-   with open(input_dir+"/map_limit_lats", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           limit_lats.append(row)
-
-   with open(input_dir+"/map_limit_lons", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           limit_lons.append(row)
-
-   with open(input_dir+"/map_names", "r") as file:
-       reader = csv.reader(file)
-       for row in reader:
-           map_names.append(row)
-
-   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
-      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
-   else:
-      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
+#
+#   with open(input_dir+"/map_limit_lats", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           limit_lats.append(row)
+#
+#   with open(input_dir+"/map_limit_lons", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           limit_lons.append(row)
+#
+#   with open(input_dir+"/map_names", "r") as file:
+#       reader = csv.reader(file)
+#       for row in reader:
+#           map_names.append(row)
+#
+#   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
+#      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
+#   else:
+#      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
 
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
@@ -509,15 +531,27 @@ if __name__ == "__main__":
    date = base_wrf_fil.split("_")[2]
    time = base_wrf_fil.split("_")[3].replace(":", "-")
 
-# Loop through maps, create input dictionary for each map and pass it to the map_fax function above
-   for i in np.arange(0, np.shape(limit_lats)[0], 1):
-      input_dict = {}
-      input_dict["latitudes"] = limit_lats[i]
-      input_dict["longitudes"] = limit_lons[i]
-      input_dict["infile"] = wrf_fil
-      input_dict["locationname"] = map_names[i]
+# Input map information
 
-      fig = map_fax(input_dict)
+   map_names.append(sys.argv[3])
+   limit_lats.append(sys.argv[4])
+   limit_lats.append(sys.argv[5])
+   limit_lons.append(sys.argv[6])
+   limit_lons.append(sys.argv[7])
 
-      plt.savefig(dest_dir+"/fax_"+dom+"_"+date+"_"+time+"_"+map_names[i][0]+".png", bbox_inches='tight')
+# Create input dictionary for each map and pass it to the map_fax function above
+
+   input_dict = {}
+   input_dict["latitudes"] = limit_lats
+   input_dict["longitudes"] = limit_lons
+   input_dict["infile"] = wrf_fil
+   input_dict["locationname"] = map_names
+
+   fig = map_fax(input_dict)
+
+   if fig:
+
+      plt.savefig(dest_dir+"/fax_"+dom+"_"+date+"_"+time+"_"+map_names[0]+".png", bbox_inches='tight')
+
+
 

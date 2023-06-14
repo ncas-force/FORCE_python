@@ -1,4 +1,3 @@
-
 def profile_skewT(x):
 
    import numpy as np
@@ -62,15 +61,6 @@ def profile_skewT(x):
 #         sounding_names[j] = ["lat"+str(sounding_lats[j][0])+"lon"+str(sounding_lons[j][0])]
 
       x_y = ll_to_xy(wrf_in, float(profile_lat[0]), float(profile_lon[0]))
-
-      print(profile_lat[0])
-      print(profile_lon[0])
-      print(x_y)
-
-      print(np.shape(lats))
-
-      print("")
-      print("")
 
       if x_y[1] >= 0 and x_y[1] < np.shape(lats)[0] and x_y[0] >= 0 and x_y[0] < np.shape(lats)[1]:
          print("Sounding is in lat lon range of selected simulation")
@@ -175,53 +165,61 @@ if __name__ == "__main__":
    import matplotlib.pyplot as plt
 
 # Define destination directory
-   dest_dir = "/home/earajr/FORCE_WRF_plotting/output/skewT"
+#  dest_dir = "/home/earajr/FORCE_WRF_plotting/output/skewT"
+   dest_dir = sys.argv[2]
    if not os.path.isdir(dest_dir):
        os.makedirs(dest_dir)
 
-# Define input directory
-   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
-
-# Profile location
-
+## Define input directory
+#   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
+#
+## Profile location
+#
    sounding_lats = []
    sounding_lons = []
    sounding_names = []
-
-   with open(input_dir+"/sounding_lats", "r") as file:
-      reader = csv.reader(file)
-      for row in reader:
-         sounding_lats.append(row)
-
-   with open(input_dir+"/sounding_lons", "r") as file:
-      reader = csv.reader(file)
-      for row in reader:
-         sounding_lons.append(row)
-
-   with open(input_dir+"/sounding_names", "r") as file:
-      reader = csv.reader(file)
-      for row in reader:
-         sounding_names.append(row)
-
-# Check to see if the number of arrays provided in lat, lon and alt files match
-   if (np.shape(sounding_lats) == np.shape(sounding_lons) == np.shape(sounding_names)):
-      print("Number sounding latitudes, longitudes and names is correct continuing with skewT generation.")
-   else:
-      raise ValueError("The number of sounding latitudes, longitudes and names does not match, please check that the sounding information provided is correct")
+#
+#   with open(input_dir+"/sounding_lats", "r") as file:
+#      reader = csv.reader(file)
+#      for row in reader:
+#         sounding_lats.append(row)
+#
+#   with open(input_dir+"/sounding_lons", "r") as file:
+#      reader = csv.reader(file)
+#      for row in reader:
+#         sounding_lons.append(row)
+#
+#   with open(input_dir+"/sounding_names", "r") as file:
+#      reader = csv.reader(file)
+#      for row in reader:
+#         sounding_names.append(row)
+#
+## Check to see if the number of arrays provided in lat, lon and alt files match
+#   if (np.shape(sounding_lats) == np.shape(sounding_lons) == np.shape(sounding_names)):
+#      print("Number sounding latitudes, longitudes and names is correct continuing with skewT generation.")
+#   else:
+#      raise ValueError("The number of sounding latitudes, longitudes and names does not match, please check that the sounding information provided is correct")
 
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
+   base_wrf_fil = os.path.basename(wrf_fil)
+   dom = base_wrf_fil.split("_")[1]
+   date = base_wrf_fil.split("_")[2]
+   time = base_wrf_fil.split("_")[3].replace(":", "-")
+
+   sounding_lats.append(sys.argv[3])
+   sounding_lons.append(sys.argv[4])
+   sounding_names.append(sys.argv[5])
 
 # Loop through soundings and create dictionary for each cross section and pass it to the profile_skewT function above
 
-   for i in np.arange(0, np.shape(sounding_lats)[0], 1):
-      input_dict = {}
-      input_dict["latitudes"] = sounding_lats[i]
-      input_dict["longitudes"] = sounding_lons[i]
-      input_dict["locationname"] = sounding_names[i][0]
-      input_dict["infile"] = wrf_fil
+   input_dict = {}
+   input_dict["latitudes"] = sounding_lats
+   input_dict["longitudes"] = sounding_lons
+   input_dict["locationname"] = sounding_names[0]
+   input_dict["infile"] = wrf_fil
 
-      fig = profile_skewT(input_dict)
+   fig = profile_skewT(input_dict)
 
-      plt.savefig(dest_dir+"/test_"+str(sounding_names[i][0])+".png", bbox_inches='tight')
+   plt.savefig(dest_dir+"/skewTlogP_"+dom+"_"+date+"_"+time+"_"+sounding_names[0]+".png", bbox_inches='tight')
 

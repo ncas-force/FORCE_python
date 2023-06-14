@@ -49,8 +49,13 @@ def rotate(ua_vertcross, va_vertcross):
          A = geodesic(point_a, point_b).km
          B = geodesic(point_b, point_c).km
          C = geodesic(point_c, point_a).km
-         degrees_A_B = 180 - \
-            degrees(acos((A * A + B * B - C * C)/(2.0 * A * B)))
+         if B == 0 or C == 0:
+            if main_lat[point-1] == main_lat[point]:
+               degrees_A_B = 90.0
+            else:
+               degrees_A_B = 180.0 
+         else:
+            degrees_A_B = 180 - degrees(acos((A * A + B * B - C * C)/(2.0 * A * B)))
          met_dir_transect.append(degrees_A_B)
 
       met_dir_transect_2 = np.array(met_dir_transect, ndmin=1)

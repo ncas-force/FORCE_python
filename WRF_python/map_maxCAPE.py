@@ -3,6 +3,7 @@ def map_maxCAPE(x):
    import numpy as np
    from cartopy import crs
    import matplotlib.pyplot as plt
+   import matplotlib as mpl
    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
    from netCDF4 import Dataset
    import os
@@ -154,8 +155,10 @@ def map_maxCAPE(x):
 
 # Plot CAPE
 
-         cape_lvls = [60, 80, 100, 120, 150, 175, 200, 240, 290, 340, 400, 500, 600, 700, 850, 1000, 1250, 1500, 1750, 2000, 2500]
-         plt.contourf(lons, lats, max_cape, levels=cape_lvls, cmap='magma_r', zorder=1, transform=crs.PlateCarree())
+         cape_lvls = [50, 80, 100, 120, 150, 175, 200, 250, 300, 400, 500, 600, 700, 850, 1000, 1250, 1500, 1750, 2000, 2500]
+         cmap = mpl.cm.get_cmap('magma_r')
+         cmap_sub = cmap(np.linspace(0.0, 1.0, 22))
+         plt.contourf(lons, lats, max_cape, levels=cape_lvls, colors=cmap_sub, zorder=1, transform=crs.PlateCarree(), extend="max")
 
          if np.size(lats[:,0]) < np.size(lats[0,:]):
             portrait = True
@@ -183,9 +186,9 @@ def map_maxCAPE(x):
                [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
                cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
                cbbox.set_facecolor([1,1,1,0.7])
-               cbbox.text(0.5,0.3, "Maximum CAPE  (J/kg)", verticalalignment='center', horizontalalignment='center')
-               cbbox.text(0.75,0.15, u'$\u25CF$'+" RH between LCL and LFC (over 60%)", verticalalignment='center', horizontalalignment='center', color='black')
-               cbbox.text(0.25,0.15, "Maximum CIN (J/kg)", verticalalignment='center', horizontalalignment='center', color='red')
+               cbbox.text(0.5,0.18, "Maximum CAPE  (J/kg)", verticalalignment='center', horizontalalignment='center')
+               cbbox.text(0.75,0.0, u'$\u25CF$'+" RH between LCL and LFC (over 60%)", verticalalignment='center', horizontalalignment='center', color='black')
+               cbbox.text(0.25,0.0, "Maximum CIN (J/kg)", verticalalignment='center', horizontalalignment='center', color='red')
                cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
                cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
          else:
@@ -193,11 +196,11 @@ def map_maxCAPE(x):
             [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
             cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
             cbbox.set_facecolor([1,1,1,0.7])
-            cbbox.text(0.5,0.3, "Maximum CAPE (J/kg)", verticalalignment='center', horizontalalignment='center')
-            cbbox.text(0.75,0.15, u'$\u25CF$'+" RH between LCL and LFC (over 60%)", verticalalignment='center', horizontalalignment='center', color='black')
-            cbbox.text(0.25,0.15, "Maximum CIN (J/kg)", verticalalignment='center', horizontalalignment='center', color='red')
+            cbbox.text(0.5,0.18, "Maximum CAPE (J/kg)", verticalalignment='center', horizontalalignment='center')
+            cbbox.text(0.75,0.0, u'$\u25CF$'+" RH between LCL and LFC (over 60%)", verticalalignment='center', horizontalalignment='center', color='black')
+            cbbox.text(0.25,0.0, "Maximum CIN (J/kg)", verticalalignment='center', horizontalalignment='center', color='red')
             cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
-            cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
+            cb = plt.colorbar(cax=cbaxes, orientation='horizontal', ticks=[50, 100, 150, 200, 300, 400, 500, 700, 1000, 1500, 2000])
 
 # Add inset timestamp
          tsbox = inset_axes(ax, '95%', '3%', loc = 9)
@@ -232,32 +235,32 @@ if __name__ == "__main__":
    if not os.path.isdir(dest_dir):
        os.makedirs(dest_dir)
 
-# Define input directory
-   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
-
+## Define input directory
+#   input_dir = "/home/earajr/FORCE_WRF_plotting/WRF_plot_inputs"
+#
    limit_lats = []
    limit_lons = []
    map_names = []
-
-   with open(input_dir+"/map_limit_lats", "r") as file:
-      reader = csv.reader(file)
-      for row in reader:
-         limit_lats.append(row)
-
-   with open(input_dir+"/map_limit_lons", "r") as file:
-      reader = csv.reader(file)
-      for row in reader:
-         limit_lons.append(row)
-
-   with open(input_dir+"/map_names", "r") as file:
-      reader = csv.reader(file)
-      for row in reader:
-         map_names.append(row)
-
-   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
-      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
-   else:
-      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
+#
+#   with open(input_dir+"/map_limit_lats", "r") as file:
+#      reader = csv.reader(file)
+#      for row in reader:
+#         limit_lats.append(row)
+#
+#   with open(input_dir+"/map_limit_lons", "r") as file:
+#      reader = csv.reader(file)
+#      for row in reader:
+#         limit_lons.append(row)
+#
+#   with open(input_dir+"/map_names", "r") as file:
+#      reader = csv.reader(file)
+#      for row in reader:
+#         map_names.append(row)
+#
+#   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
+#      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
+#   else:
+#      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
 
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
@@ -266,15 +269,23 @@ if __name__ == "__main__":
    date = base_wrf_fil.split("_")[2]
    time = base_wrf_fil.split("_")[3].replace(":", "-")
 
-# Loop through maps, create input dictionary for each map and pass it to the map_maxCAPE function above
-   for i in np.arange(0, np.shape(limit_lats)[0], 1):
-      input_dict = {}
-      input_dict["latitudes"] = limit_lats[i]
-      input_dict["longitudes"] = limit_lons[i]
-      input_dict["infile"] = wrf_fil
-      input_dict["locationname"] = map_names[i]
+# Input map information
 
-      fig = map_maxCAPE(input_dict)
+   map_names.append(sys.argv[3])
+   limit_lats.append(sys.argv[4])
+   limit_lats.append(sys.argv[5])
+   limit_lons.append(sys.argv[6])
+   limit_lons.append(sys.argv[7])
 
-      plt.savefig(dest_dir+"/maxCAPE_"+dom+"_"+date+"_"+time+"_"+map_names[i][0]+".png", bbox_inches='tight')
+# Create input dictionary for each map and pass it to the map_maxCAPE function above
+   
+   input_dict = {}
+   input_dict["latitudes"] = limit_lats
+   input_dict["longitudes"] = limit_lons
+   input_dict["infile"] = wrf_fil
+   input_dict["locationname"] = map_names
+
+   fig = map_maxCAPE(input_dict)
+
+   plt.savefig(dest_dir+"/maxCAPE_"+dom+"_"+date+"_"+time+"_"+map_names[0]+".png", bbox_inches='tight')
 
