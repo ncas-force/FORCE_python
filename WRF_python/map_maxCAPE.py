@@ -136,7 +136,7 @@ def map_maxCAPE(x):
 # Create figure and axes
          fig = plt.figure(figsize=(10,10))
          ax = plt.axes(projection=cart_proj)
-         ax.coastlines(linewidth=0.5)
+         ax.coastlines(linewidth=1.0)
          gl = ax.gridlines(linewidth=0.5, draw_labels=True, x_inline=False, y_inline=False, alpha=0.5, linestyle='--')
          gl.right_labels = False
          gl.bottom_labels = False
@@ -200,7 +200,7 @@ def map_maxCAPE(x):
             cbbox.text(0.75,0.0, u'$\u25CF$'+" RH between LCL and LFC (over 60%)", verticalalignment='center', horizontalalignment='center', color='black')
             cbbox.text(0.25,0.0, "Maximum CIN (J/kg)", verticalalignment='center', horizontalalignment='center', color='red')
             cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
-            cb = plt.colorbar(cax=cbaxes, orientation='horizontal', ticks=[50, 100, 150, 200, 300, 400, 500, 700, 1000, 1500, 2000])
+            cb = plt.colorbar(cax=cbaxes, orientation='horizontal', ticks=[50, 100, 150, 200, 300,  500, 700, 1000, 1500, 2000])
 
 # Add inset timestamp
          tsbox = inset_axes(ax, '95%', '3%', loc = 9)

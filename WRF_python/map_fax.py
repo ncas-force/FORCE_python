@@ -196,19 +196,21 @@ def map_fax(x):
             front_loc_thinned = np.where(thin(front_loc_bin) == True, 1, 0)
 
 # Convert thinned front location binary to poly lines to be drawn on once other variables are plotted
-            import socket
-            if socket.gethostname() == "lynxo":
-               print("lynxo")
-               from trace_skeleton_lynxo import traceSkeleton
+#            import socket
+#            if socket.gethostname() == "lynxo":
+#               print("lynxo")
+#               from trace_skeleton_lynxo import traceSkeleton
+#
+#               rects=[]
+#               polys = traceSkeleton(front_loc_thinned, 0,0,front_loc_thinned.shape[1],front_loc_thinned.shape[0],10,999,rects)
+#
+#            else:
+#               print("Not lynxo")
+#               import trace_skeleton_mummra as trace_skeleton
+#
+#               polys = trace_skeleton.from_numpy(front_loc_thinned)
 
-               rects=[]
-               polys = traceSkeleton(front_loc_thinned, 0,0,front_loc_thinned.shape[1],front_loc_thinned.shape[0],10,999,rects)
-
-            else:
-               print("Not lynxo")
-               import trace_skeleton_mummra as trace_skeleton
-
-               polys = trace_skeleton.from_numpy(front_loc_thinned)
+            import trace_skeleton
 
             polys_lat = []
             polys_lon = []
@@ -360,7 +362,7 @@ def map_fax(x):
 # Create figure and axes
             fig = plt.figure(figsize=(10,10))
             ax = plt.axes(projection=cart_proj)
-            ax.coastlines(linewidth=0.5)
+            ax.coastlines(linewidth=1.0)
             gl = ax.gridlines(linewidth=0.5, draw_labels=True, x_inline=False, y_inline=False, alpha=0.5, linestyle='--')
             gl.right_labels = False
             gl.bottom_labels = False

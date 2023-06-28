@@ -121,7 +121,7 @@ def map_leveloffreeconvection(x):
 # Create figure and axes
          fig = plt.figure(figsize=(10,10))
          ax = plt.axes(projection=cart_proj)
-         ax.coastlines(linewidth=0.5)
+         ax.coastlines(linewidth=1.0)
          gl = ax.gridlines(linewidth=0.5, draw_labels=True, x_inline=False, y_inline=False, alpha=0.5, linestyle='--')
          gl.right_labels = False
          gl.bottom_labels = False
@@ -151,7 +151,7 @@ def map_leveloffreeconvection(x):
                [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
                cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
                cbbox.set_facecolor([1,1,1,0.7])
-               cbbox.text(0.82,0.5, "Lifting condensation level (m)", rotation=90.0, verticalalignment='center', horizontalalignment='center')
+               cbbox.text(0.82,0.5, "Level of free convection (m)", rotation=90.0, verticalalignment='center', horizontalalignment='center')
                cbaxes = inset_axes(cbbox, '30%', '95%', loc = 6)
                cb = plt.colorbar(cax=cbaxes, aspect=20)
             else:
@@ -159,7 +159,7 @@ def map_leveloffreeconvection(x):
                [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
                cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
                cbbox.set_facecolor([1,1,1,0.7])
-               cbbox.text(0.5,0.1, "Lifting condensation level (m)", verticalalignment='center', horizontalalignment='center')
+               cbbox.text(0.5,0.1, "Level of free convection (m)", verticalalignment='center', horizontalalignment='center')
                cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
                cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
          else:
@@ -167,7 +167,7 @@ def map_leveloffreeconvection(x):
             [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
             cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
             cbbox.set_facecolor([1,1,1,0.7])
-            cbbox.text(0.5,0.1, "Lifting condensation level (m)", verticalalignment='center', horizontalalignment='center')
+            cbbox.text(0.5,0.1, "Level of free convection (m)", verticalalignment='center', horizontalalignment='center')
             cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
             cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
 

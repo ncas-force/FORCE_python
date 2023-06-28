@@ -185,7 +185,7 @@ def map_cloudprecipitation(x):
 # Create figure and axes
          fig = plt.figure(figsize=(10,10))
          ax = plt.axes(projection=cart_proj)
-         ax.coastlines(linewidth=0.5)
+         ax.coastlines(linewidth=1.0)
          ax.add_feature(feature.OCEAN,facecolor=("lightblue"))
          ax.add_feature(feature.LAND,facecolor=("sandybrown"))
          gl = ax.gridlines(linewidth=0.5, draw_labels=True, x_inline=False, y_inline=False, alpha=0.5, linestyle='--')

@@ -2,6 +2,7 @@ def crosssection_specifichumidity(x):
 
    import numpy as np
    import matplotlib.pyplot as plt
+   import matplotlib as mpl
    from netCDF4 import Dataset
    import os
    from pyproj import Geod
@@ -124,8 +125,10 @@ def crosssection_specifichumidity(x):
          gs = fig.add_gridspec(1,np.size(gc_dist)+2, width_ratios=dist_percent_int)
 
 # Set contour levels
-         spec_hum_lvls = np.arange(cmin, cmax, cstep)
-         spec_hum_lvls2 = np.arange(cmin, cmax, 2.0*cstep)
+#         spec_hum_lvls = np.arange(cmin, cmax, cstep)
+         spec_hum_lvls = [0.0075, 0.01, 0.015, 0.025, 0.035, 0.05, 0.075, 0.1, 0.15, 0.25, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0, 22.5, 25.0]
+#         spec_hum_lvls2 = np.arange(cmin, cmax, 2.0*cstep)
+         spec_hum_lvls2 = [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 12.0, 16.0, 20.0, 25.0]
 
 # loop through parts of cross section and plot data
          for k in np.arange(0, np.size(gc_dist), 1):
@@ -153,8 +156,12 @@ def crosssection_specifichumidity(x):
 # Fill in nans at the bottom of the cross section with nearest value from above
             spec_hum_cross_np = fill_xsec_nans.fill_xsec_nans(spec_hum_cross_np)
 
-# Create contours 
-            t_contours = ax.contourf(x_ticks, v_ticks, spec_hum_cross_np, levels=spec_hum_lvls, cmap='ocean_r')
+# Create contours
+
+            cmap = mpl.cm.get_cmap('ocean_r')
+            cmap_sub = cmap(np.linspace(0.0, 0.7, 29))
+
+            t_contours = ax.contourf(x_ticks, v_ticks, spec_hum_cross_np, levels=spec_hum_lvls, colors=cmap_sub)
             t_contours2 = ax.contour(x_ticks, v_ticks, spec_hum_cross_np, levels=spec_hum_lvls2, colors='k')
 
             if wind_flag:

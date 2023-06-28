@@ -155,7 +155,7 @@ def map_cloudreflectivity(x):
 # Create figure and axes
          fig = plt.figure(figsize=(10,10))
          ax = plt.axes(projection=cart_proj)
-         ax.coastlines(linewidth=0.5)
+         ax.coastlines(linewidth=1.0)
          ax.add_feature(feature.OCEAN,facecolor=("lightblue"))
          ax.add_feature(feature.LAND,facecolor=("sandybrown"))
          gl = ax.gridlines(linewidth=0.5, draw_labels=True, x_inline=False, y_inline=False, alpha=0.5, linestyle='--')
@@ -172,8 +172,13 @@ def map_cloudreflectivity(x):
 
 # Plot precip
 
-         dbz_lvls = [5 + 5*n for n in range(15)]
-         plt.contourf(lons, lats, dbz_level, levels=dbz_lvls, cmap="jet",  zorder=2, transform=crs.PlateCarree())
+#         dbz_lvls = [5 + 5*n for n in range(15)]
+         dbz_lvls = [0, 10, 15, 20, 25, 30, 35, 40, 45, 50]
+         cmap = mpl.cm.get_cmap('jet')
+         cmap_sub = cmap(np.linspace(0.25,0.9, 10))
+
+#         plt.contourf(lons, lats, dbz_level, levels=dbz_lvls, cmap="jet",  zorder=2, transform=crs.PlateCarree())
+         plt.contourf(lons, lats, dbz_level, levels=dbz_lvls, colors=cmap_sub,  zorder=2, transform=crs.PlateCarree())
 
          if np.size(lats[:,0]) < np.size(lats[0,:]):
             portrait = True
@@ -205,8 +210,8 @@ def map_cloudreflectivity(x):
                [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
                cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
                cbbox.set_facecolor([1,1,1,0.7])
-               cbbox.text(0.5,0.28, colorbartext, verticalalignment='center', horizontalalignment='center')
-               cbbox.text(0.5,0.1, "Cloud cover (white background shading)", verticalalignment='center', horizontalalignment='center', color='black')
+               cbbox.text(0.5,0.18, colorbartext, verticalalignment='center', horizontalalignment='center')
+               cbbox.text(0.5,0.0, "Cloud cover (white background shading)", verticalalignment='center', horizontalalignment='center', color='black')
                cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
                cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
 
@@ -216,7 +221,7 @@ def map_cloudreflectivity(x):
             cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
             cbbox.set_facecolor([1,1,1,0.7])
             cbbox.text(0.5,0.18, colorbartext, verticalalignment='center', horizontalalignment='center')
-            cbbox.text(0.5,0.1, "Cloud cover (white background shading)", verticalalignment='center', horizontalalignment='center', color='black')
+            cbbox.text(0.5,0.0, "Cloud cover (white background shading)", verticalalignment='center', horizontalalignment='center', color='black')
             cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
             cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
  

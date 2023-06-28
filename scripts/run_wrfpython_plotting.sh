@@ -9,7 +9,7 @@ wrf_out_dir="/home/force-woest"
 project=$1
 region=$2
 
-plotting_machine="lynxo"
+plot_machine="jaga"
 YYYYMMDD=$( date -u --date='today' +%Y%m%d )
 HH=12
 

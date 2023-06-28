@@ -123,7 +123,7 @@ def map_2mdewpointtemperature(x):
 # Create figure and axes
          fig = plt.figure(figsize=(10,10))
          ax = plt.axes(projection=cart_proj)
-         ax.coastlines(linewidth=0.5)
+         ax.coastlines(linewidth=1.0)
          gl = ax.gridlines(linewidth=0.5, draw_labels=True, x_inline=False, y_inline=False, alpha=0.5, linestyle='--')
          gl.right_labels = False
          gl.bottom_labels = False
@@ -183,11 +183,11 @@ def map_2mdewpointtemperature(x):
          tsbox.text(0.99, 0.45, "Valid_date: "+valid_time, verticalalignment='center', horizontalalignment='right')
 
 # Add wind vectors after thinning.
-         thin = [int(x/15.) for x in lons.shape]
-         if thin[0] == 0 or thin[1] == 0:
-            ax.quiver(to_np(lons), to_np(lats), to_np(u10), to_np(v10), pivot='middle', transform=crs.PlateCarree())
-         else:
-            ax.quiver(to_np(lons[::thin[0],::thin[1]]), to_np(lats[::thin[0],::thin[1]]), to_np(u10[::thin[0],::thin[1]]), to_np(v10[::thin[0],::thin[1]]), pivot='middle', transform=crs.PlateCarree())
+#         thin = [int(x/15.) for x in lons.shape]
+#         if thin[0] == 0 or thin[1] == 0:
+#            ax.quiver(to_np(lons), to_np(lats), to_np(u10), to_np(v10), pivot='middle', transform=crs.PlateCarree())
+#         else:
+#            ax.quiver(to_np(lons[::thin[0],::thin[1]]), to_np(lats[::thin[0],::thin[1]]), to_np(u10[::thin[0],::thin[1]]), to_np(v10[::thin[0],::thin[1]]), pivot='middle', transform=crs.PlateCarree())
 
 # Return figure
          return(fig)

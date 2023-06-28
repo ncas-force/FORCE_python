@@ -128,7 +128,7 @@ def map_cloudmaxreflectivity(x):
 # Create figure and axes
          fig = plt.figure(figsize=(10,10))
          ax = plt.axes(projection=cart_proj)
-         ax.coastlines(linewidth=0.5)
+         ax.coastlines(linewidth=1.0)
          ax.add_feature(feature.OCEAN,facecolor=("lightblue"))
          ax.add_feature(feature.LAND,facecolor=("sandybrown"))
          gl = ax.gridlines(linewidth=0.5, draw_labels=True, x_inline=False, y_inline=False, alpha=0.5, linestyle='--')
@@ -151,7 +151,7 @@ def map_cloudmaxreflectivity(x):
 
 # Plot precip
 
-         precip_lvls = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
+         precip_lvls = [0, 10, 15, 20, 25, 30, 35, 40, 45, 50]
          cmap = mpl.cm.get_cmap('jet')
          cmap_sub = cmap(np.linspace(0.25,0.9, 10))
          plt.contourf(lons, lats, mdbz, levels=precip_lvls, colors=cmap_sub,  zorder=2, transform=crs.PlateCarree())

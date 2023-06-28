@@ -156,17 +156,25 @@ do
 			for domain in "${domains[@]}"; do
 			   if [[ "$domain" == "${dom}" ]];
 			   then
-			      dest_dir="${base_dest_dir}/${domain}/profiles/${var}"
-                              if [ ! -d ${dest_dir} ]
-                              then
-                                 mkdir -p ${dest_dir}
-                              fi
                               while IFS= read -r profile_info_line; do
+
                                  profile_name=$( echo ${profile_info_line} | awk -F "," '{print $1}' )
                                  profile_lat=$( echo ${profile_info_line} | awk -F "," '{print $2}' )
                                  profile_lon=$( echo ${profile_info_line} | awk -F "," '{print $3}' )
+
+				 dest_dir="${base_dest_dir}/${domain}/profiles/${profile_name}/${var}"
+
+                                 if [ ! -d ${dest_dir} ]
+                                 then
+                                    mkdir -p ${dest_dir}
+                                 fi
       
                                  echo "python ${script_dir}/../WRF_python/profile_${var}.py ${fil} ${dest_dir} ${profile_lat} ${profile_lon} ${profile_name}" >> ${command_list}_${date_time}
+
+                                 if [ ! -f "${base_dest_dir}/${domain}/profiles/${profile_name}/profilelocation_${dom}_${profile_name}.png" ]
+			         then
+				    echo "python ${script_dir}/../WRF_python/map_profilelocation.py ${fil} ${base_dest_dir}/${domain}/profiles/${profile_name} ${profile_name} ${profile_lat} ${profile_lon}" >> ${command_list}_${date_time}
+				 fi
                               done < ${profile_info}
                            fi
                         done
@@ -183,6 +191,12 @@ do
 		  base_alt=$( echo ${crosssection_info_line} | awk -F "," '{print $4}' )
 		  top_alt=$( echo ${crosssection_info_line} | awk -F "," '{print $5}' )
 
+                  dest_dir="${base_dest_dir}/${dom}/crosssections/${crosssection_name}"
+		  if [ ! -f "${dest_dir}/crosssectionlocation_${dom}_${crosssection_name}.png" ]
+		  then
+                     echo "python ${script_dir}/../WRF_python/map_crosssectionlocation.py ${fil} ${dest_dir} ${crosssection_name} $( echo ${lats} | tr : , ) $( echo ${lons} | tr : , )" >> ${command_list}_${date_time}
+		  fi
+
                   namelist_vars=${script_dir}/${crosssection_name}.namelist.vars
 
                   while IFS= read -r var_line; do
@@ -196,7 +210,7 @@ do
                            for domain in "${domains[@]}"; do
                               if [[ "$domain" == "${dom}" ]];
                               then
-                                 dest_dir="${base_dest_dir}/${domain}/crosssections/${var}"
+                                 dest_dir="${base_dest_dir}/${domain}/crosssections/${crosssection_name}/${var}"
                                  if [ ! -d ${dest_dir} ]
                                  then
                                     mkdir -p ${dest_dir}
@@ -228,7 +242,6 @@ do
          break
       fi
    fi
-   break
 done
 
 rm -rf ${fil_list}

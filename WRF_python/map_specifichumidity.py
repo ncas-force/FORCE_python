@@ -145,7 +145,7 @@ def map_specifichumidity(x):
 # Create figure and axes
          fig = plt.figure(figsize=(10,10))
          ax = plt.axes(projection=cart_proj)
-         ax.coastlines(linewidth=0.5)
+         ax.coastlines(linewidth=1.0)
          gl = ax.gridlines(linewidth=0.5, draw_labels=True, x_inline=False, y_inline=False, alpha=0.5, linestyle='--')
          gl.right_labels = False
          gl.bottom_labels = False
@@ -157,8 +157,8 @@ def map_specifichumidity(x):
          plt.clabel(spechum_contour, inline=1, fontsize=10, fmt="%g")
 
          spechum_lvl = [0.0075, 0.01, 0.015, 0.025, 0.035, 0.05, 0.075, 0.1, 0.15, 0.25, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0, 22.5, 25.0]
-         cmap = mpl.cm.get_cmap('magma_r')
-         cmap_sub = cmap(np.linspace(0.0, 1.0, 29))
+         cmap = mpl.cm.get_cmap('ocean_r')
+         cmap_sub = cmap(np.linspace(0.0, 0.7, 29))
          plt.contourf(lons, lats, spechum_level, levels=spechum_lvl, zorder=1, colors=cmap_sub, transform=crs.PlateCarree())
 
 # Identify whether domain is portrait or landscape

@@ -18,9 +18,9 @@ if __name__ == "__main__":
 
 # Tests to make sure parsing of dictionaries is functioning properly.
 
-#   command_dict = {"plottype":"crosssection", "latitudes":[53.5, 53.5], "longitudes":[-5.0,-0.5], "infile":"/home/force-nwr/nwr/uk/data/2023041400/wrfout_d02_2023-04-14_14:00:00", "content":"wetbulbtemperature", "windvector":False, "leveltype":"altitude", "levels": [0, 10000], "times":["20230414T140000"]}
+#   command_dict = {"plottype":"crosssection", "latitudes":[53.5, 53.5], "longitudes":[-5.0,-0.5], "infile":"/home/force-woest/woest/uk/data/2023061412/wrfout_d02_2023-06-15_16:00:00", "content":"specifichumidity", "windvector":False, "leveltype":"altitude", "levels": [0, 10000], "times":["20230615T160000"]}
 #   command_dict = {"plottype":"profile", "latitudes":[53.5], "longitudes":[0.5], "infile":"/home/force-nwr/nwr/uk/data/2023041400/wrfout_d02_2023-04-14_14:00:00", "content":"skewT"}
-   command_dict = {"plottype":"map", "latitudes":[0, 0], "longitudes":[0, 0], "leveltype":"pressure", "levels": [200], "infile":"/home/force-woest/woest/uk/data/2023060712/wrfout_d03_2023-06-09_16:00:00", "content":"maxCAPE"}
+   command_dict = {"plottype":"map", "latitudes":[0, 0], "longitudes":[0, 0], "leveltype":"pressure", "levels": [850], "infile":"/home/force-woest/woest/uk/data/2023062012/wrfout_d02_2023-06-21_15:00:00", "content":"wetbulbtemperaturedepression"}
 
    fig = plotter(command_dict)
    plt.savefig("test_figure.png", bbox_inches='tight')

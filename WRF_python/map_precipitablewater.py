@@ -123,7 +123,7 @@ def map_precipitablewater(x):
 # Create figure and axes
          fig = plt.figure(figsize=(10,10))
          ax = plt.axes(projection=cart_proj)
-         ax.coastlines(linewidth=0.5)
+         ax.coastlines(linewidth=1.0)
 
 # Plot 2m dewpoint temperature depression
 
@@ -185,8 +185,8 @@ def map_precipitablewater(x):
          tsbox.text(0.99, 0.45, "Valid_date: "+valid_time, verticalalignment='center', horizontalalignment='right')
 
 # Add wind vectors after thinning.
-         thin = [int(x/15.) for x in lons.shape]
-         ax.quiver(to_np(lons[::thin[0],::thin[1]]), to_np(lats[::thin[0],::thin[1]]), to_np(u10[::thin[0],::thin[1]]), to_np(v10[::thin[0],::thin[1]]), pivot='middle', transform=crs.PlateCarree())
+#         thin = [int(x/15.) for x in lons.shape]
+#         ax.quiver(to_np(lons[::thin[0],::thin[1]]), to_np(lats[::thin[0],::thin[1]]), to_np(u10[::thin[0],::thin[1]]), to_np(v10[::thin[0],::thin[1]]), pivot='middle', transform=crs.PlateCarree())
 
 # Return figure
          return(fig)

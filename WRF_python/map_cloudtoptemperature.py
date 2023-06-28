@@ -110,7 +110,7 @@ def map_cloudtoptemperature(x):
             if k < min_lon_ind:
                min_lon_ind = k
 
-         ctt = getvar(wrf_in, 'ctt', timeidx=i, units="degC")[min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]*-1.0
+         ctt = getvar(wrf_in, 'ctt', timeidx=i, units="degC")[min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
 
 # Subset lat and lon from lats_all and lons_all
          lats = lats_all[min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
@@ -119,7 +119,7 @@ def map_cloudtoptemperature(x):
 # Create figure and axes
          fig = plt.figure(figsize=(10,10))
          ax = plt.axes(projection=cart_proj)
-         ax.coastlines(linewidth=0.5)
+         ax.coastlines(linewidth=1.0)
          ax.add_feature(feature.OCEAN,facecolor=("lightblue"))
          ax.add_feature(feature.LAND,facecolor=("sandybrown"))
          gl = ax.gridlines(linewidth=0.5, draw_labels=True, x_inline=False, y_inline=False, alpha=0.5, linestyle='--')
@@ -128,8 +128,11 @@ def map_cloudtoptemperature(x):
 
 # Plot theta_e
 
-         ctt_lvls = [-60,-55.0, -50, -45.0, -40, -35.0, -30, -25.0, -20, -15.0, -10, -5.0, 0, 5.0, 10.0, 15.0]
-         plt.contourf(lons, lats, ctt, levels=ctt_lvls,  cmap="Greys", transform=crs.PlateCarree())
+         print(np.nanmax(ctt))
+         print(np.nanmin(ctt))
+
+         ctt_lvls = [-50, -45.0, -40, -35.0, -30, -25.0, -20, -15.0, -10, -5.0, 0, 5.0]
+         plt.contourf(lons, lats, ctt, levels=ctt_lvls,  cmap="Greys", transform=crs.PlateCarree(), extend="both")
 
 # Identify whether domain is portrait or landscape
 
@@ -159,7 +162,7 @@ def map_cloudtoptemperature(x):
                [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
                cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
                cbbox.set_facecolor([1,1,1,0.7])
-               cbbox.text(0.5,0.3, colorbartext, verticalalignment='center', horizontalalignment='center')
+               cbbox.text(0.5,0.1, colorbartext, verticalalignment='center', horizontalalignment='center')
                cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
                cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
          else:
@@ -167,7 +170,7 @@ def map_cloudtoptemperature(x):
             [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
             cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
             cbbox.set_facecolor([1,1,1,0.7])
-            cbbox.text(0.5,0.3, colorbartext, verticalalignment='center', horizontalalignment='center')
+            cbbox.text(0.5,0.1, colorbartext, verticalalignment='center', horizontalalignment='center')
             cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
             cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
 

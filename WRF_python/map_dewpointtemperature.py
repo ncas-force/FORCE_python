@@ -146,7 +146,7 @@ def map_dewpointtemperature(x):
 # Create figure and axes
          fig = plt.figure(figsize=(10,10))
          ax = plt.axes(projection=cart_proj)
-         ax.coastlines(linewidth=0.5)
+         ax.coastlines(linewidth=1.0)
          gl = ax.gridlines(linewidth=0.5, draw_labels=True, x_inline=False, y_inline=False, alpha=0.5, linestyle='--')
          gl.right_labels = False
          gl.bottom_labels = False
@@ -324,5 +324,5 @@ if __name__ == "__main__":
 
    fig = map_dewpointtemperature(input_dict)
 
-   plt.savefig(dest_dir+"/dewpointtemperature_"+dom+"_"+date+"_"+time+"_"+map_names[0]+".png", bbox_inches='tight')
+   plt.savefig(dest_dir+"/dewpointtemperature_"+dom+"_"+date+"_"+time+"_"+level_flag+"_"+map_names[0]+".png", bbox_inches='tight')
 
