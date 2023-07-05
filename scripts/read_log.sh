@@ -9,7 +9,7 @@ region=$2
 strt_date=$3
 strt_hour=$4
 
-forecast_len=60
+forecast_len=78
 
 end_time=$( date -u -d "${strt_hour}:00:00 ${strt_date:0:4}-${strt_date:4:2}-${strt_date:6:2} +${forecast_len}hours" +"%Y-%m-%d_%H:%M:%S" )
 

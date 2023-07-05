@@ -182,12 +182,23 @@ def map_2mtemperature(x):
          tsbox.text(0.01, 0.45, "Start date: "+sim_start_time['SIMULATION_START_DATE'], verticalalignment='center', horizontalalignment='left')
          tsbox.text(0.99, 0.45, "Valid_date: "+valid_time, verticalalignment='center', horizontalalignment='right')
 
-# Add wind vectors after thinning.
-#         thin = [int(x/15.) for x in lons.shape]
-#         if thin[0] == 0 or thin[1] == 0:
-#            ax.quiver(to_np(lons), to_np(lats), to_np(u10), to_np(v10), pivot='middle', transform=crs.PlateCarree())
-#         else:
-#            ax.quiver(to_np(lons[::thin[0],::thin[1]]), to_np(lats[::thin[0],::thin[1]]), to_np(u10[::thin[0],::thin[1]]), to_np(v10[::thin[0],::thin[1]]), pivot='middle', transform=crs.PlateCarree())
+# Add temperature labels after thinning.
+         thin = [int(x/15.) for x in lons.shape]
+         if thin[0] == 0 or thin[1] == 0:
+            flat_lons = to_np(lons).flatten()
+            flat_lats = to_np(lats).flatten()
+            flat_T2 = [ "%.0f" % x for x in to_np(T2).flatten() ]
+            for j in np.arange(0, np.shape(flat_T2)[0], 1):
+               ax.text(flat_lons[j], flat_lats[j], flat_T2[j],fontsize=15,weight='bold', alpha=0.7, ha='center', va='center', transform=crs.PlateCarree())
+         else:
+            temp_lons = lons[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+            temp_lats = lats[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+            temp_T2 = T2[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+            flat_lons = to_np(temp_lons).flatten()
+            flat_lats = to_np(temp_lats).flatten()
+            flat_T2 = [ "%.0f" % x for x in to_np(temp_T2).flatten() ]
+            for j in np.arange(0, np.shape(flat_T2)[0], 1):
+               ax.text(flat_lons[j], flat_lats[j], flat_T2[j],fontsize=12,weight='bold', alpha=0.7, ha='center', va='center', transform=crs.PlateCarree())
 
 # Return figure
          return(fig)

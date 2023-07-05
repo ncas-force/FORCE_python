@@ -187,6 +187,24 @@ def map_2mdewpointdepression(x):
          tsbox.text(0.01, 0.45, "Start date: "+sim_start_time['SIMULATION_START_DATE'], verticalalignment='center', horizontalalignment='left')
          tsbox.text(0.99, 0.45, "Valid_date: "+valid_time, verticalalignment='center', horizontalalignment='right')
 
+# Add dewpoint depression labels after thinning.
+         thin = [int(x/15.) for x in lons.shape]
+         if thin[0] == 0 or thin[1] == 0:
+            flat_lons = to_np(lons).flatten()
+            flat_lats = to_np(lats).flatten()
+            flat_tdp2 = [ "%.0f" % x for x in to_np(tdp2).flatten() ]
+            for j in np.arange(0, np.shape(flat_tdp2)[0], 1):
+               ax.text(flat_lons[j], flat_lats[j], flat_tdp2[j],fontsize=15,weight='bold', alpha=0.7, ha='center', va='center', transform=crs.PlateCarree())
+         else:
+            temp_lons = lons[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+            temp_lats = lats[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+            temp_tdp2 = tdp2[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+            flat_lons = to_np(temp_lons).flatten()
+            flat_lats = to_np(temp_lats).flatten()
+            flat_tdp2 = [ "%.0f" % x for x in to_np(temp_tdp2).flatten() ]
+            for j in np.arange(0, np.shape(flat_tdp2)[0], 1):
+               ax.text(flat_lons[j], flat_lats[j], flat_tdp2[j],fontsize=12,weight='bold', alpha=0.7, ha='center', va='center', transform=crs.PlateCarree())
+
 # Add wind vectors after thinning.
 #         thin = [int(x/15.) for x in lons.shape]
 #         if thin[0] == 0 or thin[1] == 0:

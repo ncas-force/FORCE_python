@@ -11,6 +11,7 @@ region=$2
 
 plot_machine="jaga"
 YYYYMMDD=$( date -u --date='today' +%Y%m%d )
+YYYYMMDD="20230701"
 HH=12
 
 if [ -d "${wrf_out_dir}/${project}/${region}/data/${YYYYMMDD}${HH}" ]
