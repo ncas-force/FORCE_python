@@ -210,7 +210,9 @@ def map_fax(x):
 #
 #               polys = trace_skeleton.from_numpy(front_loc_thinned)
 
-            import trace_skeleton
+            from trace_skeleton_lynxo import traceSkeleton
+            rects=[]
+            polys = traceSkeleton(front_loc_thinned, 0,0,front_loc_thinned.shape[1],front_loc_thinned.shape[0],10,999,rects)
 
             polys_lat = []
             polys_lon = []
