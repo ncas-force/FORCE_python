@@ -89,8 +89,8 @@ def crosssection_specifichumidity(x):
          ter = getvar(wrf_in, "ter", timeidx=-1)
 
          if wind_flag:
-            ua = getvar(wrf_in, 'ua', timeidx=j)
-            va = getvar(wrf_in, 'va', timeidx=j)
+            ua = getvar(wrf_in, 'uvmet', timeidx=j, units='ms-1')[0]
+            va = getvar(wrf_in, 'uvmet', timeidx=j, units='ms-1')[1]
             wa = getvar(wrf_in, 'wa', timeidx=j)
 
 # Compute vertical cross section interpolation

@@ -18,9 +18,9 @@ if __name__ == "__main__":
 
 # Tests to make sure parsing of dictionaries is functioning properly.
 
-#   command_dict = {"plottype":"crosssection", "latitudes":[53.5, 53.5], "longitudes":[-5.0,-0.5], "infile":"/home/force-woest/woest/uk/data/2023061412/wrfout_d02_2023-06-15_16:00:00", "content":"specifichumidity", "windvector":False, "leveltype":"altitude", "levels": [0, 10000], "times":["20230615T160000"]}
+   command_dict = {"plottype":"crosssection", "latitudes":[58.0, 58.25], "longitudes":[-5.25, -5.375], "infile":"/home/earajr/cul_mor/output/CulMor/Scotland/data/2024102200/wrfout_d03_2024-10-22_15:06:00", "content":"specifichumidity", "windvector":True, "leveltype":"altitude", "levels": [0, 4000], "times":["20241022T150600"]}
 #   command_dict = {"plottype":"profile", "latitudes":[53.5], "longitudes":[0.5], "infile":"/home/force-nwr/nwr/uk/data/2023041400/wrfout_d02_2023-04-14_14:00:00", "content":"skewT"}
-   command_dict = {"plottype":"map", "latitudes":[0, 0], "longitudes":[0, 0], "leveltype":"pressure", "levels": [850], "infile":"/home/force-woest/woest/uk/data/2023062812/wrfout_d01_2023-06-29_15:00:00", "content":"2mdewpointdepression"}
+#   command_dict = {"plottype":"map", "latitudes":[0, 0], "longitudes":[0, 0], "leveltype":"pressure", "levels": [850], "infile":"/home/earajr/cul_mor/output/wrfout_d03_2024-10-22_15:06:00", "content":"w"}
 
    fig = plotter(command_dict)
    plt.savefig("test_figure.png", bbox_inches='tight')
