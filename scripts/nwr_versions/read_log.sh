@@ -1,30 +1,25 @@
 #!/bin/bash
 
-source /home/earajr/.bashrc
-source /home/earajr/anaconda3/etc/profile.d/conda.sh
+source /home/shared/anaconda3/etc/profile.d/conda.sh
 conda activate wp_env
 
 project=$1
 region=$2
 strt_date=$3
 strt_hour=$4
-
-forecast_len=78
+forecast_len=$5
 
 end_time=$( date -u -d "${strt_hour}:00:00 ${strt_date:0:4}-${strt_date:4:2}-${strt_date:6:2} +${forecast_len}hours" +"%Y-%m-%d_%H:%M:%S" )
 
-# MODIFY THESE DIRECTORIES TO REQUIRED LOCATIONS
-src_dir="/home/force-nwr/nwr/${region}/data/${strt_date}${strt_hour}"
-base_dest_dir="/home/earajr/FORCE_python/images/${project}/${region}/${strt_date}/${strt_hour}"
-script_dir="/home/earajr/FORCE_python/scripts"
-
-
-map_info="${script_dir}/map_info"
-crosssection_info="${script_dir}/crosssection_info"
-profile_namelist="${script_dir}/profile.namelist.vars"
-profile_info="${script_dir}/profile_info"
-timeline_namelist="${script_dir}/timeline.namelist.vars"
-timeline_info="${script_dir}/timeline_info"
+script_dir="/home/force-nwr/nwr/FORCE_python/scripts"
+map_info="${script_dir}/${region}/map_info"
+crosssection_info="${script_dir}/${region}/crosssection_info"
+profile_namelist="${script_dir}/${region}/profile.namelist.vars"
+profile_info="${script_dir}/${region}/profile_info"
+timeline_namelist="${script_dir}/${region}/timeline.namelist.vars"
+timeline_info="${script_dir}/${region}/timeline_info"
+src_dir="/home/force-nwr/${project}/${region}/data/${strt_date}${strt_hour}"
+base_dest_dir="/home/force-nwr/nwr/python_images/${project}/${region}/${strt_date}/${strt_hour}"
 log_file="${src_dir}/nwr_log"
 command_list="${script_dir}/command_list_${project}_${region}_${strt_date}_${strt_hour}"
 fil_list="${script_dir}/fil_list_${region}_${strt_date}_${strt_hour}"
@@ -55,6 +50,7 @@ then
    rm -rf ${fil_list}
 fi
 touch ${fil_list}
+
 
 count=0 
 while true;
@@ -98,7 +94,7 @@ do
                   limit_lon1=$( echo ${map_info_line} | awk -F "," '{print $4}' )
                   limit_lon2=$( echo ${map_info_line} | awk -F "," '{print $5}' )
 
-                  namelist_vars=${script_dir}/${map_name}.namelist.vars
+                  namelist_vars=${script_dir}/${region}/${map_name}.namelist.vars
 
                   while IFS= read -r var_line; do
                      var_line_head=$( echo ${var_line} | awk -F ":" '{print $1}' )
@@ -130,7 +126,7 @@ do
 	                   done
    	                done
                      elif [ "${var_line_head}" == "m_lev_vars_a" ]
-                     then
+                    then
                         IFS=',' read -ra vars_alevs  <<< "$( echo ${var_line} | awk -F ":" '{print $2}' )"
                         for var_alevs in "${vars_alevs[@]}"; do
                            var=$( echo ${var_alevs} | awk '{print $1}' )
@@ -202,7 +198,7 @@ do
                      echo "python ${script_dir}/../WRF_python/map_crosssectionlocation.py ${fil} ${dest_dir} ${crosssection_name} $( echo ${lats} | tr : , ) $( echo ${lons} | tr : , )" >> ${command_list}_${date_time}
 		  fi
 
-                  namelist_vars=${script_dir}/${crosssection_name}.namelist.vars
+                  namelist_vars=${script_dir}/${region}/${crosssection_name}.namelist.vars
 
                   while IFS= read -r var_line; do
 	             var_line_head=$( echo ${var_line} | awk -F ":" '{print $1}' )
@@ -219,7 +215,7 @@ do
                                  if [ ! -d ${dest_dir} ]
                                  then
                                     mkdir -p ${dest_dir}
-                                fi
+                                 fi
 				 echo "python ${script_dir}/../WRF_python/crosssection_${var}.py ${fil} ${dest_dir} $( echo ${lats} | tr : , ) $( echo ${lons} | tr : , ) 0,0 ${base_alt} ${top_alt} ${crosssection_name}" >> ${command_list}_${date_time}
                               fi
                            done
@@ -231,71 +227,68 @@ do
             fi
          fi
 
-	 # TIMELINE PLOTS
+         # TIMELINE PLOTS
 
-	 base_fil=$( basename ${fil} )
-	 dom=$( echo ${base_fil} | awk -F "_" '{print $2}' )
-	 prefix=${base_fil:0:11}
-	 fil_HHMM=${base_fil:22:5}
+         base_fil=$( basename ${fil} )
+         dom=$( echo ${base_fil} | awk -F "_" '{print $2}' )
+         prefix=${base_fil:0:11}
+         fil_HHMM=${base_fil:22:5}
          YYYY=${base_fil:11:4}
-	 MM=${base_fil:16:2}
-	 DD=${base_fil:19:2}
-	 start_dtime=$( date -u -d "$YYYY$MM$DD $fil_HHMM" +%s)
+         MM=${base_fil:16:2}
+         DD=${base_fil:19:2}
+         start_dtime=$( date -u -d "$YYYY$MM$DD $fil_HHMM" +%s)
 
-	 if [[ "${fil_HHMM}" == "00:00" ]];
+         if [[ "${fil_HHMM}" == "00:00" ]];
          then
-	     next_dtime=$(date -u -d "@$((start_dtime + 24 * 3600))" +%Y-%m-%d_%H:%M:%S)
-            if [ -f ${src_dir}/${prefix}${next_dtime} ]
-	    then
-	       while IFS= read -r var_line; do
+            next_dtime=$(date -u -d "@$((start_dtime + 24 * 3600))" +%Y-%m-%d_%H:%M:%S)
+	    if [ -f ${src_dir}/${prefix}${next_dtime} ]
+            then
+               while IFS= read -r var_line; do
 	          var_line_head=$( echo ${var_line} | awk -F ":" '{print $1}' )
-		  if [ "${var_line_head}" == "timeline_vars" ]
-                  then
-                     IFS=',' read -ra vars_domains  <<< "$( echo ${var_line} | awk -F ":" '{print $2}' )"
-                     for var_domains in "${vars_domains[@]}"; do
-                        var=$( echo ${var_domains} | awk '{print $1}' )
-                        IFS=' ' read -ra domains  <<< "$( echo ${var_domains} | awk '{$1 = ""; print $0}' )"
-                        for domain in "${domains[@]}"; do
-                           if [[ "$domain" == "${dom}" ]];
-                           then
-			      while IFS= read -r timeline_info_line; do
-			         timeline_name=$( echo ${timeline_info_line} | awk -F "," '{print $1}' )
-                                 timeline_lat=$( echo ${timeline_info_line} | awk -F "," '{print $2}' )
-                                 timeline_lon=$( echo ${timeline_info_line} | awk -F "," '{print $3}' )
-				 timeline_length=$( echo ${timeline_info_line} | awk -F "," '{print $4}' )
-				 timeline_starttime="${YYYY}-${MM}-${DD}_${fil_HHMM}:00" 
+	          if [ "${var_line_head}" == "timeline_vars" ]
+	          then
+	             IFS=',' read -ra vars_domains  <<< "$( echo ${var_line} | awk -F ":" '{print $2}' )"
+		     for var_domains in "${vars_domains[@]}"; do
+		        var=$( echo ${var_domains} | awk '{print $1}' )
+		        IFS=' ' read -ra domains  <<< "$( echo ${var_domains} | awk '{$1 = ""; print $0}' )"
+		        for domain in "${domains[@]}"; do
+	                   if [[ "$domain" == "${dom}" ]];
+		           then
+		              while IFS= read -r timeline_info_line; do
+		                 timeline_name=$( echo ${timeline_info_line} | awk -F "," '{print $1}' )
+				 timeline_lat=$( echo ${timeline_info_line} | awk -F "," '{print $2}' )
+			         timeline_lon=$( echo ${timeline_info_line} | awk -F "," '{print $3}' )
+			         timeline_length=$( echo ${timeline_info_line} | awk -F "," '{print $4}' )
+			         timeline_starttime="${YYYY}-${MM}-${DD}_${fil_HHMM}:00"
 
-				 dest_dir="${base_dest_dir}/${domain}/timelines/${timeline_name}/${var}"
+			         dest_dir="${base_dest_dir}/${domain}/timelines/${timeline_name}/${var}"
 
-				 if [ ! -d ${dest_dir} ]
+			         if [ ! -d ${dest_dir} ]
                                  then
                                     mkdir -p ${dest_dir}
-                                 fi
+			         fi
 
-          			 if grep -Fxq "python ${script_dir}/../WRF_python/timeline_${var}.py ${fil} ${dest_dir} ${timeline_lat} ${timeline_lon} ${timeline_name} ${timeline_starttime} ${timeline_length}" "${command_list}"; then
-                                    echo "Command already run: $cmd"
-                                 else
-                                    echo "Running: python ${script_dir}/../WRF_python/timeline_${var}.py ${fil} ${dest_dir} ${timeline_lat} ${timeline_lon} ${timeline_name} ${timeline_starttime} ${timeline_length}"
-				    echo "python ${script_dir}/../WRF_python/timeline_${var}.py ${fil} ${dest_dir} ${timeline_lat} ${timeline_lon} ${timeline_name} ${timeline_starttime} ${timeline_length}" >> ${command_list}_${date_time}
-                                 fi
+			         if grep -Fxq "python ${script_dir}/../WRF_python/timeline_${var}.py ${fil} ${dest_dir} ${timeline_lat} ${timeline_lon} ${timeline_name} ${timeline_starttime} ${timeline_length}" "${command_list}"; then
+		                    echo "Command already run: $cmd"
+			         else
+			            echo "Running: python ${script_dir}/../WRF_python/timeline_${var}.py ${fil} ${dest_dir} ${timeline_lat} ${timeline_lon} ${timeline_name} ${timeline_starttime} ${timeline_length}"
+			            echo "python ${script_dir}/../WRF_python/timeline_${var}.py ${fil} ${dest_dir} ${timeline_lat} ${timeline_lon} ${timeline_name} ${timeline_starttime} ${timeline_length}" >> ${command_list}_${date_time}
+			         fi
 			      done < ${timeline_info}
-                           fi
-			done
-	             done
-		  fi
+	                   fi
+		        done
+		     done
+                  fi
 	       done < ${timeline_namelist}
-	    fi
+            fi
 	 fi
       done
       echo "Attempting to run plotting in parallel!"
-      cat ${command_list}_${date_time}
-      parallel -j 40 < ${command_list}_${date_time}
+      parallel -j 30 < ${command_list}_${date_time}
       cat ${command_list}_${date_time} >> ${command_list}
    fi
    rm -rf ${command_list}_${date_time}
    sleep 30s
-
-   echo ${end_time}
 
    if grep -q ${end_time} ${fil_list}
    then
