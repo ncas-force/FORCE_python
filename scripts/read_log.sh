@@ -262,7 +262,7 @@ do
 			         timeline_name=$( echo ${timeline_info_line} | awk -F "," '{print $1}' )
                                  timeline_lat=$( echo ${timeline_info_line} | awk -F "," '{print $2}' )
                                  timeline_lon=$( echo ${timeline_info_line} | awk -F "," '{print $3}' )
-				 timeline_length=$( echo ${timeline_info_line} | awk -F "," '{print $4}' )
+				 timeline_length="24"
 				 timeline_starttime="${YYYY}-${MM}-${DD}_${fil_HHMM}:00" 
 
 				 dest_dir="${base_dest_dir}/${domain}/timelines/${timeline_name}/${var}"
