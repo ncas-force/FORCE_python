@@ -1,9 +1,63 @@
+def transform_and_stitch_cmap(base_cmap, name="combo",
+                               sat_scales=(0.6, 1.0),
+                               light_ops=("boost", "none"),
+                               light_params=(0.3, 0.0),
+                               n=256, exp=2.0, cutoff=0.2,
+                               reverse_first=True,
+                               portions=(0.666, 0.334)):  # fraction of colors for each section
+
+    import numpy as np
+    from matplotlib.colors import LinearSegmentedColormap
+    from matplotlib import colors
+
+    def adjust(cmap, sat_scale, light_op, light_param, n_colors, reverse=False):
+        # x = positions along cmap
+        x = np.linspace(0, 1, n_colors)
+
+        rgb = cmap(x)[:, :3]
+        hsv = colors.rgb_to_hsv(rgb)
+
+        # r = ramp scaled to fraction of this section
+        r = np.linspace(0, 1, n_colors)
+
+        if light_op == "boost":
+            min_ramp = 0.4
+            scaled_r = np.clip(r / cutoff, 0, 1)
+            ramp = min_ramp + (1 - min_ramp) * (scaled_r ** exp)
+            mask = r <= cutoff
+            ramp[~mask] = 1.0
+
+            sat_scale_ramp = ramp * sat_scale
+            light_param_ramp = ramp * light_param
+            if reverse == "True":
+                hsv[:, 1] = np.clip(hsv[:, 1] * (1 - sat_scale_ramp[::-1]), 0, 1)
+                hsv[:, 2] = np.clip(hsv[:, 2] + light_param_ramp[::-1], 0, 1)
+            else:
+                hsv[:, 1] = np.clip(hsv[:, 1] * (1 - sat_scale_ramp), 0, 1)
+                hsv[:, 2] = np.clip(hsv[:, 2] + light_param_ramp, 0, 1)
+
+        return colors.hsv_to_rgb(hsv)
+
+    # compute number of colors for each section
+    n_colors_list = [int(np.round(p * n)) for p in portions]
+
+    all_colors = []
+    for i, (s, op, p, n_sec) in enumerate(zip(sat_scales, light_ops, light_params, n_colors_list)):
+        if i == 0 and reverse_first=="True":
+            temp_cols = adjust(base_cmap, s, op, p, n_sec, reverse=True)
+            all_colors.extend(temp_cols[::-1])
+        else:
+            all_colors.extend(adjust(base_cmap, s, op, p, n_sec))
+
+    return LinearSegmentedColormap.from_list(name, all_colors)
+
 def map_temperature(x):
    import numpy as np
    from cartopy import crs
    import matplotlib.pyplot as plt
    import matplotlib as mpl
    import matplotlib.colors as mcolors
+   import colorcet as cc
    from netCDF4 import Dataset
    import os
    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -11,7 +65,13 @@ def map_temperature(x):
 
    from wrf import (getvar, interplevel, vertcross, CoordPair, ALL_TIMES, to_np, get_cartopy, latlon_coords, cartopy_xlim, cartopy_ylim, extract_times, extract_global_attrs, ll_to_xy, get_proj_params, getproj)
 
-# Read spatial information from input directory
+# Read domain from input dictionary
+
+   dom = x["domain"]
+
+   print(dom)
+
+# Read spatial information from input dictionary
 
    limit_lats = [float(x["latitudes"][0]), float(x["latitudes"][1])]
    limit_lons = [float(x["longitudes"][0]), float(x["longitudes"][1])]
@@ -154,16 +214,16 @@ def map_temperature(x):
 # Plot temperature
 
          temp_lvl2 = np.arange(-100.0, 100.0, 2.0)
-         temp_contour = plt.contour(lons, lats, temp_level,levels=temp_lvl2, colors='k', transform=crs.PlateCarree())
-         plt.clabel(temp_contour, inline=1, fontsize=10, fmt="%.0f")
+         if dom != "d03":
+            temp_contour = plt.contour(lons, lats, temp_level,levels=temp_lvl2, colors='k', transform=crs.PlateCarree(), alpha=0.5)
+            plt.clabel(temp_contour, inline=1, fontsize=13, fmt="%.0f")
 
-         temp_lvl = np.arange(-80.0, 36.0, 1.0)
-         cmap1 = mpl.cm.get_cmap('twilight')
-         cmap2 = mpl.cm.get_cmap('inferno')
-         cmap_sub1 = cmap1(np.linspace(0.0, 0.45, 80))
-         cmap_sub2 = cmap2(np.linspace(0.2, 1.0, 35))
-         colors = np.vstack((cmap_sub1, cmap_sub2))
-         mymap = mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
+         temp_lvl = np.arange(-79.0, 41.0, 1.0)
+
+#         mymap=transform_and_stitch_cmap(cc.cm['rainbow_bgyrm_35_85_c71'], name="rainbow_bgyrm_combo", reverse_first="True")
+#         mymap=transform_and_stitch_cmap(cc.cm['linear_protanopic_deuteranopic_kbjyw_5_95_c25'], name="colourblind_combo", reverse_first="True")
+         mymap=transform_and_stitch_cmap(mpl.cm.get_cmap('plasma'), name="plasma_combo", reverse_first="True")
+
          plt.contourf(lons, lats, temp_level, levels=temp_lvl, zorder=1, cmap=mymap, transform=crs.PlateCarree(), extend="both")
 
 # Identify whether domain is portrait or landscape
@@ -191,7 +251,7 @@ def map_temperature(x):
                cbbox.set_facecolor([1,1,1,0.7])
                cbbox.text(0.85,0.5, colorbartext, rotation=90.0, verticalalignment='center', horizontalalignment='center')
                cbaxes = inset_axes(cbbox, '30%', '95%', loc = 6)
-               cb = plt.colorbar(cax=cbaxes, aspect=20)
+               cb = plt.colorbar(cax=cbaxes, aspect=20, ticks=[-80.0, -70.0, -60.0, -50.0, -40.0, -30.0, -20.0, -10.0, 0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0])
             else:
                cbbox = inset_axes(ax, '90%', '12%', loc = 8)
                [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
@@ -199,7 +259,7 @@ def map_temperature(x):
                cbbox.set_facecolor([1,1,1,0.7])
                cbbox.text(0.5,0.1, colorbartext, verticalalignment='center', horizontalalignment='center')
                cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
-               cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
+               cb = plt.colorbar(cax=cbaxes, orientation='horizontal', ticks=[-80.0, -70.0, -60.0, -50.0, -40.0, -30.0, -20.0, -10.0, 0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0])
          else:
             cbbox = inset_axes(ax, '100%', '100%', bbox_to_anchor=(0, -0.13, 1, 0.13), bbox_transform=ax.transAxes, loc = 8, borderpad=0)
             [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
@@ -207,7 +267,7 @@ def map_temperature(x):
             cbbox.set_facecolor([1,1,1,0.7])
             cbbox.text(0.5,0.1, colorbartext, verticalalignment='center', horizontalalignment='center')
             cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
-            cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
+            cb = plt.colorbar(cax=cbaxes, orientation='horizontal', ticks=[-80.0, -70.0, -60.0, -50.0, -40.0, -30.0, -20.0, -10.0, 0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0])
 
 # Add inset timestamp
          tsbox = inset_axes(ax, '95%', '3%', loc = 9)
@@ -218,10 +278,28 @@ def map_temperature(x):
          sim_start_time = extract_global_attrs(wrf_in, 'SIMULATION_START_DATE')
          valid_time = str(extract_times(wrf_in, ALL_TIMES)[i])[0:22]
    
-#         print(sim_start_time['SIMULATION_START_DATE'])
-
          tsbox.text(0.01, 0.45, "Start date: "+sim_start_time['SIMULATION_START_DATE'], verticalalignment='center', horizontalalignment='left')
          tsbox.text(0.99, 0.45, "Valid_date: "+valid_time, verticalalignment='center', horizontalalignment='right')
+
+
+         if dom == "d03":
+# Add temperature labels after thinning.
+            thin = [int(x/15.) for x in lons.shape]
+            if thin[0] == 0 or thin[1] == 0:
+               flat_lons = to_np(lons).flatten()
+               flat_lats = to_np(lats).flatten()
+               flat_temp_level = [ "%.0f" % x for x in to_np(temp_level).flatten() ]
+               for j in np.arange(0, np.shape(flat_temp_level)[0], 1):
+                  ax.text(flat_lons[j], flat_lats[j], flat_temp_level[j],fontsize=15,weight='bold', alpha=0.7, ha='center', va='center', transform=crs.PlateCarree())
+            else:
+               temp_lons = lons[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+               temp_lats = lats[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+               temp_temp_level = temp_level[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+               flat_lons = to_np(temp_lons).flatten()
+               flat_lats = to_np(temp_lats).flatten()
+               flat_temp_level = [ "%.0f" % x for x in to_np(temp_temp_level).flatten() ]
+               for j in np.arange(0, np.shape(flat_temp_level)[0], 1):
+                  ax.text(flat_lons[j], flat_lats[j], flat_temp_level[j],fontsize=12,weight='bold', alpha=0.7, ha='center', va='center', transform=crs.PlateCarree())
 
 # Return figure
          return(fig)
@@ -255,37 +333,6 @@ if __name__ == "__main__":
    map_names = []
    map_leveltype = []
    map_level = []
-#
-#   with open(input_dir+"/map_limit_lats", "r") as file:
-#       reader = csv.reader(file)
-#       for row in reader:
-#           limit_lats.append(row)
-#
-#   with open(input_dir+"/map_limit_lons", "r") as file:
-#       reader = csv.reader(file)
-#       for row in reader:
-#           limit_lons.append(row)
-#
-#   with open(input_dir+"/map_names", "r") as file:
-#       reader = csv.reader(file)
-#       for row in reader:
-#           map_names.append(row)
-#
-#   with open(input_dir+"/map_leveltype", "r") as file:
-#      reader = csv.reader(file)
-#      for row in reader:
-#         map_leveltype.append(row)
-#
-#   with open(input_dir+"/map_level", "r") as file:
-#      reader = csv.reader(file)
-#      for row in reader:
-#         map_level.append(row)
-#
-#
-#   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
-#      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
-#   else:
-#      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
 #
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
@@ -321,6 +368,7 @@ if __name__ == "__main__":
    input_dict["locationname"] = map_names
    input_dict["leveltype"] = map_leveltype
    input_dict["levels"] = map_level
+   input_dict["domain"] = dom
 
    fig = map_temperature(input_dict)
 

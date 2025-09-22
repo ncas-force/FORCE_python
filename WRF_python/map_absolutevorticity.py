@@ -4,6 +4,7 @@ def map_absolutevorticity(x):
    import matplotlib.pyplot as plt
    import matplotlib as mpl
    import matplotlib.colors as mcolors
+   import colorcet as cc
    from netCDF4 import Dataset
    import os
    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -153,23 +154,8 @@ def map_absolutevorticity(x):
 
 # Plot absolute vorticity
 
-#         avo_lvl2 = [-10.0, -6.0, -2.0, 2.0, 6.0, 10.0, 14.0, 18.0, 22.0, 26.0, 30.0, 34.0, 36.0, 42.0, 46.0, 50.0]
-#         avo_contour = plt.contour(lons, lats, avo_level,levels=avo_lvl2, colors='k', transform=crs.PlateCarree())
-#         plt.clabel(avo_contour, inline=1, fontsize=10, fmt="%g")
-
-#         print(np.max(avo_level))
-#         print(np.min(avo_level))
-#
-#         avo_lvl = [-2.0, -1.75, -1.5, -1.25, -1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0]
-#         cmap1 = mpl.cm.get_cmap('bwr')
-#         cmap2 = mpl.cm.get_cmap('hsv')
-#         cmap_sub1 = cmap1(np.linspace(0.0,1.0, 25))
-#         cmap_sub2 = cmap2(np.linspace(0.0,0.8,175))
-#         colors = np.vstack((cmap_sub1, cmap_sub2))
-#         mymap = mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
-
          avo_lvl = np.arange(-100.0, 105.0, 5.0)
-         plt.contourf(lons, lats, avo_level, levels=avo_lvl, zorder=1, cmap='bwr', transform=crs.PlateCarree(), extend="both")
+         plt.contourf(lons, lats, avo_level, levels=avo_lvl, zorder=1, cmap=cc.cm['diverging_bwr_20_95_c54'], transform=crs.PlateCarree(), extend="both")
 
 # Identify whether domain is portrait or landscape
 
@@ -261,37 +247,6 @@ if __name__ == "__main__":
    map_names = []
    map_leveltype = []
    map_level = []
-#
-#   with open(input_dir+"/map_limit_lats", "r") as file:
-#       reader = csv.reader(file)
-#       for row in reader:
-#           limit_lats.append(row)
-#
-#   with open(input_dir+"/map_limit_lons", "r") as file:
-#       reader = csv.reader(file)
-#       for row in reader:
-#           limit_lons.append(row)
-#
-#   with open(input_dir+"/map_names", "r") as file:
-#       reader = csv.reader(file)
-#       for row in reader:
-#           map_names.append(row)
-#
-#   with open(input_dir+"/map_leveltype", "r") as file:
-#      reader = csv.reader(file)
-#      for row in reader:
-#         map_leveltype.append(row)
-#
-#   with open(input_dir+"/map_level", "r") as file:
-#      reader = csv.reader(file)
-#      for row in reader:
-#         map_level.append(row)
-#
-#
-#   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
-#      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
-#   else:
-#      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
 #
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]

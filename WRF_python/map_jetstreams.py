@@ -164,7 +164,7 @@ def map_jetstreams(x):
 
 # Plot 200 hPa windspeed    
          ws_200_lvl = np.arange(5, 80, 5)
-         plt.contourf(lons, lats, ws_200, levels=ws_200_lvl, cmap='gray_r', transform=crs.PlateCarree())
+         plt.contourf(lons, lats, ws_200, levels=ws_200_lvl, cmap='gray_r', transform=crs.PlateCarree(), extend='max')
 
 # Identify whether domain is portrait or landscape
 

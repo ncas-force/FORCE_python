@@ -6,9 +6,14 @@ def map_precipitablewater(x):
    from netCDF4 import Dataset
    import os
    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+   import matplotlib as mpl
    from pyproj import Geod
 
    from wrf import (getvar, interplevel, vertcross, CoordPair, ALL_TIMES, to_np, get_cartopy, latlon_coords, cartopy_xlim, cartopy_ylim, extract_times, extract_global_attrs, ll_to_xy, get_proj_params, getproj)
+
+# Read domain from input dictionary
+
+   dom = x["domain"]
 
 # Read spatial information from input directory
 
@@ -128,11 +133,14 @@ def map_precipitablewater(x):
 # Plot 2m dewpoint temperature depression
 
          pw_lvl2 = np.arange(-5.0, 65.0, 5.0)
-         pw_contour = plt.contour(lons, lats, pw, levels = pw_lvl2, colors='k', transform=crs.PlateCarree())
-         plt.clabel(pw_contour, inline=1, fontsize=10, fmt="%.0f")
+         if dom != "d03":
+            pw_contour = plt.contour(lons, lats, pw, levels = pw_lvl2, colors='k', transform=crs.PlateCarree(), alpha=0.5)
+            plt.clabel(pw_contour, inline=1, fontsize=13, fmt="%.0f")
 
          pw_lvl = np.arange(0.0, 50.0, 0.5)
-         plt.contourf(lons, lats, pw, levels=pw_lvl, cmap='magma_r', zorder=1, transform=crs.PlateCarree())
+         cmap = mpl.cm.get_cmap('magma_r')
+         cmap_sub = mpl.colors.LinearSegmentedColormap.from_list("trimmed", cmap(np.linspace(0.0, 0.8, 256)))
+         plt.contourf(lons, lats, pw, levels=pw_lvl, cmap=cmap_sub, zorder=1, transform=crs.PlateCarree(), extend="max")
 
 # Identify whether domain is portrait or landscape
 
@@ -184,9 +192,25 @@ def map_precipitablewater(x):
          tsbox.text(0.01, 0.45, "Start date: "+sim_start_time['SIMULATION_START_DATE'], verticalalignment='center', horizontalalignment='left')
          tsbox.text(0.99, 0.45, "Valid_date: "+valid_time, verticalalignment='center', horizontalalignment='right')
 
-# Add wind vectors after thinning.
-#         thin = [int(x/15.) for x in lons.shape]
-#         ax.quiver(to_np(lons[::thin[0],::thin[1]]), to_np(lats[::thin[0],::thin[1]]), to_np(u10[::thin[0],::thin[1]]), to_np(v10[::thin[0],::thin[1]]), pivot='middle', transform=crs.PlateCarree())
+         if dom == "d03":
+# Add temperature labels after thinning.
+            thin = [int(x/15.) for x in lons.shape]
+            if thin[0] == 0 or thin[1] == 0:
+               flat_lons = to_np(lons).flatten()
+               flat_lats = to_np(lats).flatten()
+               flat_pw = [ "%.0f" % x for x in to_np(pw).flatten() ]
+               for j in np.arange(0, np.shape(flat_pw)[0], 1):
+                  ax.text(flat_lons[j], flat_lats[j], flat_pw[j],fontsize=15,weight='bold', alpha=0.7, ha='center', va='center', transform=crs.PlateCarree())
+            else:
+               temp_lons = lons[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+               temp_lats = lats[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+               temp_pw = pw[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+               flat_lons = to_np(temp_lons).flatten()
+               flat_lats = to_np(temp_lats).flatten()
+               flat_pw = [ "%.0f" % x for x in to_np(temp_pw).flatten() ]
+               for j in np.arange(0, np.shape(flat_pw)[0], 1):
+                  ax.text(flat_lons[j], flat_lats[j], flat_pw[j],fontsize=12,weight='bold', alpha=0.7, ha='center', va='center', transform=crs.PlateCarree())
+
 
 # Return figure
          return(fig)
@@ -217,26 +241,6 @@ if __name__ == "__main__":
    limit_lats = []
    limit_lons = []
    map_names = []
-#
-#   with open(input_dir+"/map_limit_lats", "r") as file:
-#       reader = csv.reader(file)
-#       for row in reader:
-#           limit_lats.append(row)
-#
-#   with open(input_dir+"/map_limit_lons", "r") as file:
-#       reader = csv.reader(file)
-#       for row in reader:
-#           limit_lons.append(row)
-#
-#   with open(input_dir+"/map_names", "r") as file:
-#       reader = csv.reader(file)
-#       for row in reader:
-#           map_names.append(row)
-#
-#   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
-#      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
-#   else:
-#      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
 
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
@@ -260,6 +264,7 @@ if __name__ == "__main__":
    input_dict["longitudes"] = limit_lons
    input_dict["infile"] = wrf_fil
    input_dict["locationname"] = map_names
+   input_dict["domain"] = dom
 
    fig = map_precipitablewater(input_dict)
 

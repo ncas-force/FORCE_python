@@ -5,6 +5,7 @@ def map_cloudreflectivity(x):
    from cartopy.feature import NaturalEarthFeature
    import matplotlib.pyplot as plt
    import matplotlib as mpl
+   import colorcet as cc
    from netCDF4 import Dataset
    import os
    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -174,7 +175,7 @@ def map_cloudreflectivity(x):
 
 #         dbz_lvls = [5 + 5*n for n in range(15)]
          dbz_lvls = [0, 10, 15, 20, 25, 30, 35, 40, 45, 50]
-         cmap = mpl.cm.get_cmap('jet')
+         cmap = cc.cm["rainbow_bgyr_10_90_c83"]
          cmap_sub = cmap(np.linspace(0.25,0.9, 10))
 
 #         plt.contourf(lons, lats, dbz_level, levels=dbz_lvls, cmap="jet",  zorder=2, transform=crs.PlateCarree())

@@ -3,6 +3,7 @@ def map_2mdewpointdepression(x):
    import numpy as np
    from cartopy import crs
    import matplotlib.pyplot as plt
+   import matplotlib as mpl
    from netCDF4 import Dataset
    import os
    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -119,7 +120,7 @@ def map_2mdewpointdepression(x):
          v10 = getvar(wrf_in, 'uvmet10', timeidx=i)[1,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
 
          tdp2 = t2 - 273.15 - td2
-         tdp2 = np.where(tdp2 > 5.0, 5.0, tdp2)
+         tdp2 = np.where(tdp2 < 0.0, 0.0, tdp2)
 
 # Subset lat and lon from lats_all and lons_all
          lats = lats_all[min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
@@ -134,8 +135,12 @@ def map_2mdewpointdepression(x):
          gl.bottom_labels = False
 
 # Plot 2m dewpoint temperature depression
-         tdp2_lvl = np.arange(0.0, 7.3, 0.2)
-         plt.contourf(lons, lats, tdp2, levels=tdp2_lvl, cmap='magma_r', transform=crs.PlateCarree())
+         tdp2_lvl = np.arange(0.0, 10.25, 0.25)
+
+         cmap = mpl.cm.get_cmap('magma_r')
+         cmap_sub = mpl.colors.LinearSegmentedColormap.from_list("trimmed", cmap(np.linspace(0.0, 0.8, 256)))
+
+         plt.contourf(lons, lats, tdp2, levels=tdp2_lvl, cmap=cmap_sub, transform=crs.PlateCarree(), extend='max')
 
 # Identify whether domain is portrait or landscape
 

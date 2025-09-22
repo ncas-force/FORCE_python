@@ -7,6 +7,7 @@ def map_potentialvorticity(x):
    from netCDF4 import Dataset
    import os
    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+   import colorcet as cc
    from pyproj import Geod
 
    from wrf import (getvar, interplevel, vertcross, CoordPair, ALL_TIMES, to_np, get_cartopy, latlon_coords, cartopy_xlim, cartopy_ylim, extract_times, extract_global_attrs, ll_to_xy, get_proj_params, getproj)
@@ -159,7 +160,8 @@ def map_potentialvorticity(x):
 
          pvo_lvl = [-2.0, -1.75, -1.5, -1.25, -1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0]
          cmap1 = mpl.cm.get_cmap('bwr')
-         cmap2 = mpl.cm.get_cmap('hsv')
+#         cmap2 = mpl.cm.get_cmap('hsv')
+         cmap2 = cc.cm['cyclic_rygcbmr_50_90_c64']
          cmap_sub1 = cmap1(np.linspace(0.0,1.0, 24))
          cmap_sub2 = cmap2(np.linspace(0.0,0.8,76))
          colors = np.vstack((cmap_sub1, cmap_sub2))

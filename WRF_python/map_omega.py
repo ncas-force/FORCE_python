@@ -5,6 +5,7 @@ def map_omega(x):
    from netCDF4 import Dataset
    import os
    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+   import colorcet as cc
    from pyproj import Geod
 
    from wrf import (getvar, interplevel, vertcross, CoordPair, ALL_TIMES, to_np, get_cartopy, latlon_coords, cartopy_xlim, cartopy_ylim, extract_times, extract_global_attrs, ll_to_xy, get_proj_params, getproj)
@@ -155,8 +156,9 @@ def map_omega(x):
 #         omega_contour = plt.contour(lons, lats, omega_level,levels=omega_lvl2, colors='k', transform=crs.PlateCarree())
 #         plt.clabel(omega_contour, inline=1, fontsize=10, fmt="%.0f")
 
-         omega_lvl = np.arange(-2.5, 2.6, 0.1)
-         plt.contourf(lons, lats, omega_level, levels=omega_lvl, zorder=1, cmap='bwr', transform=crs.PlateCarree(), extend="both")
+         omega_lvl = np.arange(-3.5, 3.6, 0.1)
+
+         plt.contourf(lons, lats, omega_level, levels=omega_lvl, zorder=1, cmap=cc.cm['diverging_bwr_20_95_c54'], transform=crs.PlateCarree(), extend="both")
 
 # Identify whether domain is portrait or landscape
 

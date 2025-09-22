@@ -9,6 +9,10 @@ def map_potentialtemperature(x):
 
    from wrf import (getvar, interplevel, vertcross, CoordPair, ALL_TIMES, to_np, get_cartopy, latlon_coords, cartopy_xlim, cartopy_ylim, extract_times, extract_global_attrs, ll_to_xy, get_proj_params, getproj)
 
+# Read domain from input dictionary
+
+   dom = x["domain"]
+
 # Read spatial information from input directory
 
    limit_lats = [float(x["latitudes"][0]), float(x["latitudes"][1])]
@@ -152,8 +156,9 @@ def map_potentialtemperature(x):
 # Plot theta
 
          theta_lvl2 = np.arange(200.0, 375.0, 2.0)
-         theta_contour = plt.contour(lons, lats, theta_level,levels=theta_lvl2, colors='k', transform=crs.PlateCarree())
-         plt.clabel(theta_contour, inline=1, fontsize=10, fmt="%.0f")
+         if dom != "d03":
+            theta_contour = plt.contour(lons, lats, theta_level,levels=theta_lvl2, colors='k', transform=crs.PlateCarree(), alpha=0.5)
+            plt.clabel(theta_contour, inline=1, fontsize=13, fmt="%.0f")
 
          theta_lvl = np.arange(250.0, 375.0, 1.0)
          plt.contourf(lons, lats, theta_level, levels=theta_lvl, zorder=1, cmap='CMRmap', transform=crs.PlateCarree())
@@ -214,6 +219,25 @@ def map_potentialtemperature(x):
 
          tsbox.text(0.01, 0.45, "Start date: "+sim_start_time['SIMULATION_START_DATE'], verticalalignment='center', horizontalalignment='left')
          tsbox.text(0.99, 0.45, "Valid_date: "+valid_time, verticalalignment='center', horizontalalignment='right')
+
+         if dom == "d03":
+# Add temperature labels after thinning.
+            thin = [int(x/15.) for x in lons.shape]
+            if thin[0] == 0 or thin[1] == 0:
+               flat_lons = to_np(lons).flatten()
+               flat_lats = to_np(lats).flatten()
+               flat_theta_level = [ "%.0f" % x for x in to_np(theta_level).flatten() ]
+               for j in np.arange(0, np.shape(flat_theta_level)[0], 1):
+                  ax.text(flat_lons[j], flat_lats[j], flat_theta_level[j],fontsize=15,weight='bold', alpha=0.7, ha='center', va='center', transform=crs.PlateCarree())
+            else:
+               temp_lons = lons[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+               temp_lats = lats[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+               temp_theta_level = theta_level[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+               flat_lons = to_np(temp_lons).flatten()
+               flat_lats = to_np(temp_lats).flatten()
+               flat_theta_level = [ "%.0f" % x for x in to_np(temp_theta_level).flatten() ]
+               for j in np.arange(0, np.shape(flat_theta_level)[0], 1):
+                  ax.text(flat_lons[j], flat_lats[j], flat_theta_level[j],fontsize=12,weight='bold', alpha=0.7, ha='center', va='center', transform=crs.PlateCarree())
 
 # Return figure
          return(fig)
@@ -313,6 +337,7 @@ if __name__ == "__main__":
    input_dict["locationname"] = map_names
    input_dict["leveltype"] = map_leveltype
    input_dict["levels"] = map_level
+   input_dict["domain"] = dom
 
    fig = map_potentialtemperature(input_dict)
 

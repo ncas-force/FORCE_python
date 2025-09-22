@@ -10,6 +10,10 @@ def map_specifichumidity(x):
 
    from wrf import (getvar, interplevel, vertcross, CoordPair, ALL_TIMES, to_np, get_cartopy, latlon_coords, cartopy_xlim, cartopy_ylim, extract_times, extract_global_attrs, ll_to_xy, get_proj_params, getproj)
 
+# Read domain from input dictionary
+
+   dom = x["domain"]
+
 # Read spatial information from input directory
 
    limit_lats = [float(x["latitudes"][0]), float(x["latitudes"][1])]
@@ -153,8 +157,9 @@ def map_specifichumidity(x):
 # Plot specific humidity
 
          spechum_lvl2 = [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 12.0, 16.0, 20.0, 25.0]
-         spechum_contour = plt.contour(lons, lats, spechum_level,levels=spechum_lvl2, colors='k', transform=crs.PlateCarree())
-         plt.clabel(spechum_contour, inline=1, fontsize=10, fmt="%g")
+         if dom != "d03":
+            spechum_contour = plt.contour(lons, lats, spechum_level,levels=spechum_lvl2, colors='k', transform=crs.PlateCarree(), alpha=0.5)
+            plt.clabel(spechum_contour, inline=1, fontsize=13, fmt="%g")
 
          spechum_lvl = [0.0075, 0.01, 0.015, 0.025, 0.035, 0.05, 0.075, 0.1, 0.15, 0.25, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0, 22.5, 25.0]
          cmap = mpl.cm.get_cmap('ocean_r')
@@ -218,6 +223,26 @@ def map_specifichumidity(x):
          tsbox.text(0.01, 0.45, "Start date: "+sim_start_time['SIMULATION_START_DATE'], verticalalignment='center', horizontalalignment='left')
          tsbox.text(0.99, 0.45, "Valid_date: "+valid_time, verticalalignment='center', horizontalalignment='right')
 
+         if dom == "d03":
+# Add temperature labels after thinning.
+            thin = [int(x/15.) for x in lons.shape]
+            if thin[0] == 0 or thin[1] == 0:
+               flat_lons = to_np(lons).flatten()
+               flat_lats = to_np(lats).flatten()
+               flat_spechum_level = [ "%.1f" % x for x in to_np(spechum_level).flatten() ]
+               for j in np.arange(0, np.shape(flat_spechum_level)[0], 1):
+                  ax.text(flat_lons[j], flat_lats[j], flat_spechum_level[j],fontsize=15,weight='bold', alpha=0.7, ha='center', va='center', transform=crs.PlateCarree())
+            else:
+               temp_lons = lons[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+               temp_lats = lats[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+               temp_spechum_level = spechum_level[int(thin[0]/2)::thin[0],int(thin[1]/2)::thin[1]]
+               flat_lons = to_np(temp_lons).flatten()
+               flat_lats = to_np(temp_lats).flatten()
+               flat_spechum_level = [ "%.1f" % x for x in to_np(temp_spechum_level).flatten() ]
+               for j in np.arange(0, np.shape(flat_spechum_level)[0], 1):
+                  ax.text(flat_lons[j], flat_lats[j], flat_spechum_level[j],fontsize=12,weight='bold', alpha=0.7, ha='center', va='center', transform=crs.PlateCarree())
+
+
 # Return figure
          return(fig)
 
@@ -250,37 +275,6 @@ if __name__ == "__main__":
    map_names = []
    map_leveltype = []
    map_level = []
-#
-#   with open(input_dir+"/map_limit_lats", "r") as file:
-#       reader = csv.reader(file)
-#       for row in reader:
-#           limit_lats.append(row)
-#
-#   with open(input_dir+"/map_limit_lons", "r") as file:
-#       reader = csv.reader(file)
-#       for row in reader:
-#           limit_lons.append(row)
-#
-#   with open(input_dir+"/map_names", "r") as file:
-#       reader = csv.reader(file)
-#       for row in reader:
-#           map_names.append(row)
-#
-#   with open(input_dir+"/map_leveltype", "r") as file:
-#      reader = csv.reader(file)
-#      for row in reader:
-#         map_leveltype.append(row)
-#
-#   with open(input_dir+"/map_level", "r") as file:
-#      reader = csv.reader(file)
-#      for row in reader:
-#         map_level.append(row)
-#
-#
-#   if (np.shape(limit_lats)[0] == np.shape(limit_lons)[0] == np.size(map_names)):
-#      print("Number of map limit latitudes, longitudes and map names is correct continuing with map generation.")
-#   else:
-#      raise ValueError("The number of map limit latitudes, longitudes or map names in the input directory does not match, please check that the map information provided is correct")
 
 # Input WRF out file as an argument (full path)
    wrf_fil = sys.argv[1]
@@ -316,6 +310,7 @@ if __name__ == "__main__":
    input_dict["locationname"] = map_names
    input_dict["leveltype"] = map_leveltype
    input_dict["levels"] = map_level
+   input_dict["domain"] = dom
 
    fig = map_specifichumidity(input_dict)
 

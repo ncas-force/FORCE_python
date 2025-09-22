@@ -5,6 +5,7 @@ def map_cloudprecipitation(x):
    from cartopy.feature import NaturalEarthFeature
    import matplotlib.pyplot as plt
    import matplotlib as mpl
+   import colorcet as cc
    from netCDF4 import Dataset
    import os
    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -208,7 +209,7 @@ def map_cloudprecipitation(x):
 # Plot precip
 
          precip_lvls = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0, 12.5, 15.0, 17.5, 20.0, 25.0, 30.0, 40.0, 50.0]
-         cmap = mpl.cm.get_cmap('jet')
+         cmap = cc.cm["rainbow_bgyr_10_90_c83"]
          cmap_sub = cmap(np.linspace(0.25,0.9, 22))
          plt.contourf(lons, lats, rtot1hr, levels=precip_lvls, colors=cmap_sub,  zorder=2, transform=crs.PlateCarree())
 

@@ -1,8 +1,66 @@
+def transform_and_stitch_cmap(base_cmap, name="combo",
+                               sat_scales=(0.6, 1.0),
+                               light_ops=("boost", "none"),
+                               light_params=(0.3, 0.0),
+                               n=256, exp=2.0, cutoff=0.2,
+                               reverse_first=True,
+                               portions=(0.666, 0.334)):  # fraction of colors for each section
+
+    import numpy as np
+    from matplotlib.colors import LinearSegmentedColormap
+    from matplotlib import colors
+
+    def adjust(cmap, sat_scale, light_op, light_param, n_colors, reverse=False):
+        # x = positions along cmap
+        x = np.linspace(0, 1, n_colors)
+
+        rgb = cmap(x)[:, :3]
+        hsv = colors.rgb_to_hsv(rgb)
+
+        # r = ramp scaled to fraction of this section
+        r = np.linspace(0, 1, n_colors)
+
+        if light_op == "boost":
+            min_ramp = 0.4
+            scaled_r = np.clip(r / cutoff, 0, 1)
+            ramp = min_ramp + (1 - min_ramp) * (scaled_r ** exp)
+            mask = r <= cutoff
+            ramp[~mask] = 1.0
+
+            sat_scale_ramp = ramp * sat_scale
+            light_param_ramp = ramp * light_param
+            if reverse == "True":
+                hsv[:, 1] = np.clip(hsv[:, 1] * (1 - sat_scale_ramp[::-1]), 0, 1)
+                hsv[:, 2] = np.clip(hsv[:, 2] + light_param_ramp[::-1], 0, 1)
+            else:
+                hsv[:, 1] = np.clip(hsv[:, 1] * (1 - sat_scale_ramp), 0, 1)
+                hsv[:, 2] = np.clip(hsv[:, 2] + light_param_ramp, 0, 1)
+
+        return colors.hsv_to_rgb(hsv)
+
+    # compute number of colors for each section
+    n_colors_list = [int(np.round(p * n)) for p in portions]
+
+    all_colors = []
+    for i, (s, op, p, n_sec) in enumerate(zip(sat_scales, light_ops, light_params, n_colors_list)):
+        if i == 0 and reverse_first=="True":
+            temp_cols = adjust(base_cmap, s, op, p, n_sec, reverse=True)
+            all_colors.extend(temp_cols[::-1])
+        else:
+            all_colors.extend(adjust(base_cmap, s, op, p, n_sec))
+
+    color_subset = all_colors[127:255]
+
+    new_all_colors = np.array([color_subset[int(i * (len(color_subset)-1)/255)] for i in range(256)])
+
+    return LinearSegmentedColormap.from_list(name, new_all_colors)
+
 def map_2mdewpointtemperature(x):
 
    import numpy as np
    from cartopy import crs
    import matplotlib.pyplot as plt
+   import matplotlib as mpl
    from netCDF4 import Dataset
    import os
    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -129,8 +187,12 @@ def map_2mdewpointtemperature(x):
          gl.bottom_labels = False
 
 # Plot 2m dewpoint temperature depression
-         tdp2_lvl = np.arange(-11.5, 20.5, 0.5)
-         plt.contourf(lons, lats, td2, levels=tdp2_lvl, cmap='magma_r', transform=crs.PlateCarree())
+         tdp2_lvl = np.arange(-20.5, 40.5, 0.5)
+
+#         mymap=transform_and_stitch_cmap(cc.cm['rainbow_bgyrm_35_85_c71'], name="rainbow_bgyrm_combo", reverse_first="True")
+         mymap=transform_and_stitch_cmap(mpl.cm.get_cmap('plasma'), name="plasma_combo", reverse_first="True")
+
+         plt.contourf(lons, lats, td2, levels=tdp2_lvl, cmap=mymap, transform=crs.PlateCarree(), extend="both")
 
 # Identify whether domain is portrait or landscape
 

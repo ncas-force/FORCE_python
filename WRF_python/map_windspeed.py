@@ -6,6 +6,7 @@ def map_windspeed(x):
    from netCDF4 import Dataset
    import os
    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+   import colorcet as cc
    from pyproj import Geod
 
    from wrf import (getvar, interplevel, vertcross, CoordPair, ALL_TIMES, to_np, get_cartopy, latlon_coords, cartopy_xlim, cartopy_ylim, extract_times, extract_global_attrs, ll_to_xy, get_proj_params, getproj)
@@ -172,8 +173,8 @@ def map_windspeed(x):
 #         rh_contour = plt.contour(lons, lats, rh_level,levels=rh_lvl2, colors='k', transform=crs.PlateCarree())
 #         plt.clabel(rh_contour, inline=1, fontsize=10, fmt="%g")
 
-         windspeed_lvl = np.arange(0.0, 25.0, 0.5)
-         plt.contourf(lons, lats, windspeed_level, levels=windspeed_lvl, zorder=1, cmap='jet', transform=crs.PlateCarree(), extend="max")
+         windspeed_lvl = np.arange(0.0, 82.0, 2.0)
+         plt.contourf(lons, lats, windspeed_level, levels=windspeed_lvl, zorder=1, cmap=cc.cm['rainbow_bgyrm_35_85_c71'], transform=crs.PlateCarree(), extend="max")
 
          ax.streamplot(lons, lats, u_level, v_level, density=1, color='white', transform=crs.PlateCarree())
 
@@ -202,7 +203,7 @@ def map_windspeed(x):
                cbbox.set_facecolor([1,1,1,0.7])
                cbbox.text(0.85,0.5, colorbartext, rotation=90.0, verticalalignment='center', horizontalalignment='center')
                cbaxes = inset_axes(cbbox, '30%', '95%', loc = 6)
-               cb = plt.colorbar(cax=cbaxes, aspect=20)
+               cb = plt.colorbar(cax=cbaxes, aspect=20, ticks=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0])
             else:
                cbbox = inset_axes(ax, '90%', '12%', loc = 8)
                [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
@@ -210,7 +211,7 @@ def map_windspeed(x):
                cbbox.set_facecolor([1,1,1,0.7])
                cbbox.text(0.5,0.1, colorbartext, verticalalignment='center', horizontalalignment='center')
                cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
-               cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
+               cb = plt.colorbar(cax=cbaxes, orientation='horizontal', ticks=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0])
          else:
             cbbox = inset_axes(ax, '100%', '100%', bbox_to_anchor=(0, -0.13, 1, 0.13), bbox_transform=ax.transAxes, loc = 8, borderpad=0)
             [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
@@ -218,7 +219,7 @@ def map_windspeed(x):
             cbbox.set_facecolor([1,1,1,0.7])
             cbbox.text(0.5,0.1, colorbartext, verticalalignment='center', horizontalalignment='center')
             cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
-            cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
+            cb = plt.colorbar(cax=cbaxes, orientation='horizontal', ticks=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0])
 
 # Add inset timestamp
          tsbox = inset_axes(ax, '95%', '3%', loc = 9)
