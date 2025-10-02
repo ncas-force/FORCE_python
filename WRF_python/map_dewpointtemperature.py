@@ -218,7 +218,7 @@ def map_dewpointtemperature(x):
 
          mymap=transform_and_stitch_cmap(mpl.cm.get_cmap('plasma'), name="plasma_combo", reverse_first="True")
 
-         td_lvl = np.arange(-80.0, 36.0, 1.0)
+         td_lvl = np.arange(-79.0, 41.0, 1.0)
          mymap=transform_and_stitch_cmap(mpl.cm.get_cmap('plasma'), name="plasma_combo", reverse_first="True")
 
          plt.contourf(lons, lats, td_level, levels=td_lvl, zorder=1, cmap=mymap, transform=crs.PlateCarree(), extend="both")
