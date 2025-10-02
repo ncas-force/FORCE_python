@@ -1,30 +1,42 @@
 #!/bin/bash
 
-source /home/earajr/.bashrc
-source /home/earajr/anaconda3/etc/profile.d/conda.sh
+source /home/shared/anaconda3/etc/profile.d/conda.sh
 conda activate wp_env
 
 project=$1
 region=$2
 strt_date=$3
 strt_hour=$4
-
-forecast_len=78
+forecast_len=$5
 
 end_time=$( date -u -d "${strt_hour}:00:00 ${strt_date:0:4}-${strt_date:4:2}-${strt_date:6:2} +${forecast_len}hours" +"%Y-%m-%d_%H:%M:%S" )
 
-# MODIFY THESE DIRECTORIES TO REQUIRED LOCATIONS
-src_dir="/home/force-nwr/nwr/${region}/data/${strt_date}${strt_hour}"
-base_dest_dir="/home/earajr/FORCE_python/images/${project}/${region}/${strt_date}/${strt_hour}"
-script_dir="/home/earajr/FORCE_python/scripts"
 
+## MODIFY THESE DIRECTORIES TO REQUIRED LOCATIONS
+#src_dir="/home/force-nwr/nwr/${region}/data/${strt_date}${strt_hour}"
+#base_dest_dir="/home/earajr/FORCE_python/images/${project}/${region}/${strt_date}/${strt_hour}"
+#script_dir="/home/earajr/FORCE_python/scripts"
+#
+#
+#map_info="${script_dir}/map_info"
+#crosssection_info="${script_dir}/crosssection_info"
+#profile_namelist="${script_dir}/profile.namelist.vars"
+#profile_info="${script_dir}/profile_info"
+#timeline_namelist="${script_dir}/timeline.namelist.vars"
+#timeline_info="${script_dir}/timeline_info"
+#log_file="${src_dir}/nwr_log"
+#command_list="${script_dir}/command_list_${project}_${region}_${strt_date}_${strt_hour}"
+#fil_list="${script_dir}/fil_list_${region}_${strt_date}_${strt_hour}"
 
-map_info="${script_dir}/map_info"
-crosssection_info="${script_dir}/crosssection_info"
-profile_namelist="${script_dir}/profile.namelist.vars"
-profile_info="${script_dir}/profile_info"
-timeline_namelist="${script_dir}/timeline.namelist.vars"
-timeline_info="${script_dir}/timeline_info"
+script_dir="/home/force-nwr/nwr/FORCE_python/scripts"
+map_info="${script_dir}/${region}/map_info"
+crosssection_info="${script_dir}/${region}/crosssection_info"
+profile_namelist="${script_dir}/${region}/profile.namelist.vars"
+profile_info="${script_dir}/${region}/profile_info"
+timeline_namelist="${script_dir}/${region}/timeline.namelist.vars"
+timeline_info="${script_dir}/${region}/timeline_info"
+src_dir="/home/force-nwr/${project}/${region}/data/${strt_date}${strt_hour}"
+base_dest_dir="/home/force-nwr/nwr/python_images/${project}/${region}/${strt_date}/${strt_hour}"
 log_file="${src_dir}/nwr_log"
 command_list="${script_dir}/command_list_${project}_${region}_${strt_date}_${strt_hour}"
 fil_list="${script_dir}/fil_list_${region}_${strt_date}_${strt_hour}"
@@ -98,7 +110,7 @@ do
                   limit_lon1=$( echo ${map_info_line} | awk -F "," '{print $4}' )
                   limit_lon2=$( echo ${map_info_line} | awk -F "," '{print $5}' )
 
-                  namelist_vars=${script_dir}/${map_name}.namelist.vars
+		  namelist_vars=${script_dir}/${region}/${map_name}.namelist.vars
 
                   while IFS= read -r var_line; do
                      var_line_head=$( echo ${var_line} | awk -F ":" '{print $1}' )
@@ -202,7 +214,7 @@ do
                      echo "python ${script_dir}/../WRF_python/map_crosssectionlocation.py ${fil} ${dest_dir} ${crosssection_name} $( echo ${lats} | tr : , ) $( echo ${lons} | tr : , )" >> ${command_list}_${date_time}
 		  fi
 
-                  namelist_vars=${script_dir}/${crosssection_name}.namelist.vars
+		  namelist_vars=${script_dir}/${region}/${crosssection_name}.namelist.vars
 
                   while IFS= read -r var_line; do
 	             var_line_head=$( echo ${var_line} | awk -F ":" '{print $1}' )

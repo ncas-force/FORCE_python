@@ -12,7 +12,7 @@ region=$2
 run_len=$3
 
 plot_machine="jaga"
-YYYYMMDD=$( date -u --date='today' +%Y%m%d )
+YYYYMMDD=$( date -u --date='yesterday' +%Y%m%d )
 HH=00
 
 if [ "${region}" == "uk" ]
@@ -23,7 +23,7 @@ then
    plot_machine="lynxo"
 elif [ "${region}" == "cape_verde" ]
 then
-   plot_machine="liono"
+   plot_machine="lynxo"
 fi
 echo "$region"
 
