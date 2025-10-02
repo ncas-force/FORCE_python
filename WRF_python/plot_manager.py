@@ -20,9 +20,13 @@ if __name__ == "__main__":
 
 #   command_dict = {"plottype":"crosssection", "latitudes":[58.0, 58.25], "longitudes":[-5.25, -5.375], "infile":"/home/earajr/cul_mor/output/CulMor/Scotland/data/2024102200/wrfout_d03_2024-10-22_15:06:00", "content":"specifichumidity", "windvector":True, "leveltype":"altitude", "levels": [0, 4000], "times":["20241022T150600"]}
 #   command_dict = {"plottype":"profile", "latitudes":[53.5], "longitudes":[0.5], "infile":"/home/force-nwr/nwr/uk/data/2023041400/wrfout_d02_2023-04-14_14:00:00", "content":"skewT"}
-#   command_dict = {"plottype":"map", "latitudes":[0, 0], "longitudes":[0, 0], "leveltype":"pressure", "levels": [850], "infile":"/home/earajr/cul_mor/output/wrfout_d03_2024-10-22_15:06:00", "content":"w"}
+#   command_dict = {"plottype":"map", "latitudes":[0, 0], "longitudes":[0, 0], "leveltype":"altitude", "levels": [300], "infile":"/home/earajr/WOEST/data/wrfout_d03_2023-08/wrfout_d03_2023-08-09_16:00:00", "content":"specifichumiditysb"}
+#   command_dict = {"plottype":"map", "latitudes":[0, 0], "longitudes":[0, 0], "infile":"/home/earajr/WOEST/data/2023061412/wrfout_d03_2023-06-15_16:00:00", "content":"2mtemperaturesb"}
    
-   command_dict = {"plottype":"timeline", "latitudes":[58.6088], "longitudes":[-4.9427],  "infile":"/home/force-nwr/nwr/uk/data/2025062300/wrfout_d02_2025-06-23_00:00:00", "content":"meteogram", "timelinestarttime":"2025-06-23_00:00:00", "timelinelength":"24", "locationname":"LURA_launchsite"}
+
+   
+   command_dict = {"plottype":"timeline", "latitudes":[51.13], "longitudes":[-1.43],  "infile":"/home/earajr/WOEST/data/2023061312/wrfout_d03_2023-06-14_00:00:00", "content":"meteogram", "timelinestarttime":"2023-06-14_00:00:00", "timelinelength":"24", "locationname":"Chilbolton"}
+
 
    fig = plotter(command_dict)
    plt.savefig("test_figure.png", bbox_inches='tight')

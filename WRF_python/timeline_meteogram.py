@@ -77,7 +77,7 @@ def timeline_meteogram(x):
    infils_all = sorted(glob.glob(wrf_path+"/wrfout_"+dom+"*"))
    infils = []
 
-   # Variables for meteogram 2m temperature, precip, mslp, cloud cover (fog, low, mid, high fraction), windspeed (mph), wind direction, weather icons, 1 every 3 hours, cloud base, CAPE, wavestate, sunrise & sunset
+   # Variables for meteogram 2m temperature, precip, mslp, cloud cover (fog, low, mid, high fraction), windspeed (m/s), wind direction, weather icons, 1 every 3 hours, cloud base, CAPE, wavestate, sunrise & sunset
 
    times = []
    T2 = []
@@ -90,6 +90,8 @@ def timeline_meteogram(x):
    cloud_base = []
    windspeed = []
    winddirection = []
+   u = []
+   v = []
 
    for f in infils_all:
         base = os.path.basename(f)
@@ -170,9 +172,15 @@ def timeline_meteogram(x):
              cloud_base.append(cbh_agl)
 
              # windspeed and direction
-             ws = getvar(wrf_in, 'uvmet10_wspd_wdir', units="mph", timeidx=t_idx)[:,x_y[1],x_y[0]].values[0]
+
+             u_ = getvar(wrf_in, 'uvmet10', timeidx=t_idx)[:,x_y[1],x_y[0]].values[0]
+             v_ = getvar(wrf_in, 'uvmet10', timeidx=t_idx)[:,x_y[1],x_y[0]].values[1]
+
+             ws = getvar(wrf_in, 'uvmet10_wspd_wdir', timeidx=t_idx)[:,x_y[1],x_y[0]].values[0]
              wdir = getvar(wrf_in, 'uvmet10_wspd_wdir', timeidx=t_idx)[:,x_y[1],x_y[0]].values[1]
 
+             u.append(u_)
+             v.append(v_)
              windspeed.append(ws)
              winddirection.append(wdir)
 
@@ -188,7 +196,9 @@ def timeline_meteogram(x):
       "cloud_high": high_cloud_fraction,
       "cloud_base": cloud_base,
       "wind_speed": windspeed,
-      "wind_dir": winddirection
+      "wind_dir": winddirection,
+      "u_wind": u,
+      "v_wind": v
    }, index=pd.to_datetime(times))
 
    # --- Start plot ---
@@ -236,7 +246,7 @@ def timeline_meteogram(x):
 #--------------------------------
 # 4. Windspeed
 # --------------------------------
-   ax1.plot(df.index, df["wind_speed"], color='green', linewidth=3, label="10 m windspeed (mph)")
+   ax1.plot(df.index, df["wind_speed"], color='green', linewidth=3, label="10 m windspeed (m/s)")
 
 # --------------------------------
 # 4. Precipitation bars
@@ -247,13 +257,13 @@ def timeline_meteogram(x):
 # 5. Wind arrows
 # --------------------------------
    for i, time in enumerate(df.index):
-      u = df["wind_speed"].iloc[i] * np.sin(np.radians(df["wind_dir"].iloc[i]))
-      v = df["wind_speed"].iloc[i] * np.cos(np.radians(df["wind_dir"].iloc[i]))
+#     u = df["wind_speed"].iloc[i] * np.sin(np.radians(df["wind_dir"].iloc[i]))
+#     v = df["wind_speed"].iloc[i] * np.cos(np.radians(df["wind_dir"].iloc[i]))
 
       X = mdates.date2num(time)
       Y = -1.5
       
-      ax1.quiver(X, Y, u*x_axis_diff, v*y_axis_diff*aspect_ratio, scale=500, width=0.003, angles='xy', scale_units='xy', color='k', zorder=5, pivot='middle')
+      ax1.quiver(X, Y, df["u_wind"][i]*x_axis_diff, df["v_wind"][i]*y_axis_diff*aspect_ratio, scale=500, width=0.003, angles='xy', scale_units='xy', color='k', zorder=5, pivot='middle')
 
 # --------------------------------
 # 5. Pressure (right axis)
@@ -283,7 +293,7 @@ def timeline_meteogram(x):
          transform=ax1.transAxes, rotation=90,
          va='center', ha='center', fontsize=12)
 
-   ax1.text(-0.03, 0.75, "Wind Speed (mph)", color='tab:green',
+   ax1.text(-0.03, 0.75, "Wind Speed (m/s)", color='tab:green',
          transform=ax1.transAxes, rotation=90,
          va='center', ha='center', fontsize=12)
 
