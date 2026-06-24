@@ -9,7 +9,7 @@ region=$2
 strt_date=$3
 strt_hour=$4
 
-script_dir="/home/earajr/cul_mor/FORCE_python/scripts"
+script_dir="/home/earajr/FORCE_python_polar/FORCE_python/scripts"
 map_info="${script_dir}/map_info"
 crosssection_info="${script_dir}/crosssection_info"
 profile_namelist="${script_dir}/profile.namelist.vars"

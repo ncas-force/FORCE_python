@@ -65,6 +65,10 @@ def map_cloudmaxreflectivity(x):
 # Extract the number of times within the WRF file and loop over all times in file
    num_times = np.size(extract_times(wrf_in, ALL_TIMES))
 
+# Read sea ice and grounded ice limits
+   grounded_ice = getvar(wrf_in, 'XLAND', timeidx=0)
+   sea_ice = getvar(wrf_in, 'LANDMASK', timeidx=0)
+
    for i in np.arange(0, num_times, 1):
 
       cloud_frac_all = getvar(wrf_in, 'cloudfrac', timeidx=i)[0,:,:]
@@ -117,9 +121,12 @@ def map_cloudmaxreflectivity(x):
          cloud_frac_max = np.amax(cloud_frac, axis=0)
 
          tc = getvar(wrf_in, 'tc', timeidx=i)[:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
+         T2 = getvar(wrf_in, 'T2', timeidx=i)[min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]-273.15
+
          pressure = getvar(wrf_in, 'pressure', timeidx=i)[:,min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
 
          tc_850 = interplevel(tc, pressure, 850.0)
+         tc_850 = tc_850.fillna(T2)
 
          mdbz = getvar(wrf_in, 'mdbz', timeidx=i)[min_lat_ind:max_lat_ind+1, min_lon_ind:max_lon_ind+1]
 
@@ -147,7 +154,7 @@ def map_cloudmaxreflectivity(x):
 
 # Plot snow hatching
 
-         snow_lvls = [-10.0, -5.0, 0.0]
+         snow_lvls = [-205.0, -5.0, 195.0]
          snow = plt.contourf(lons, lats, tc_850, levels=snow_lvls, colors='None', hatches=['XX','',''], zorder=3, transform=crs.PlateCarree())
 
 # Plot precip
@@ -157,7 +164,25 @@ def map_cloudmaxreflectivity(x):
          cmap_sub = cmap(np.linspace(0.25,0.9, 10))
          plt.contourf(lons, lats, mdbz, levels=precip_lvls, colors=cmap_sub,  zorder=2, transform=crs.PlateCarree())
 
-         if np.size(lats[:,0]) < np.size(lats[0,:]):
+         ax.contour(lons, lats, grounded_ice, levels=[0.5], colors='black', linewidths=1.5, zorder=100, transform=crs.PlateCarree())
+         ax.contour(lons, lats, sea_ice, levels=[0.5], colors='cyan', linewidths=1.5, zorder=101, transform=crs.PlateCarree())
+
+# Read station locations
+
+         marker_file = "../scripts/marker_list"
+         with open(marker_file, "r") as f:
+            for line in f:
+               line = line.strip()
+
+               stat_name, stat_lat, stat_lon = line.split(",")
+
+               stat_lat = float(stat_lat)
+               stat_lon = float(stat_lon)
+
+               ax.plot(stat_lon,stat_lat, marker="o", markersize=6, color="red", transform=crs.PlateCarree(), zorder=1000)
+
+
+         if np.size(lats[:,0]) > np.size(lats[0,:]):
             portrait = True
          else:
             portrait = False
@@ -188,15 +213,26 @@ def map_cloudmaxreflectivity(x):
                cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
 
          else:
-            cbbox = inset_axes(ax, '100%', '100%', bbox_to_anchor=(0, -0.13, 1, 0.13), bbox_transform=ax.transAxes, loc = 8, borderpad=0)
-            [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
-            cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
-            cbbox.set_facecolor([1,1,1,0.7])
-            cbbox.text(0.5,0.18, "Maximum reflectivity (dbz)", verticalalignment='center', horizontalalignment='center')
-            cbbox.text(0.75,0.0, u'$\u00D7$'+" Chance of snow", verticalalignment='center', horizontalalignment='center', color='black')
-            cbbox.text(0.25,0.0, "Cloud cover (white background shading)", verticalalignment='center', horizontalalignment='center', color='black')
-            cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
-            cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
+            if portrait:
+               cbbox = inset_axes(ax, '100%', '100%', bbox_to_anchor=(0, -0.13, 1, 0.13), bbox_transform=ax.transAxes, loc = 8, borderpad=0)
+               [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
+               cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
+               cbbox.set_facecolor([1,1,1,0.7])
+               cbbox.text(0.5,0.18, "Maximum reflectivity (dbz)", verticalalignment='center', horizontalalignment='center')
+               cbbox.text(0.75,0.0, u'$\u00D7$'+" Chance of snow", verticalalignment='center', horizontalalignment='center', color='black')
+               cbbox.text(0.25,0.0, "Cloud cover (white background shading)", verticalalignment='center', horizontalalignment='center', color='black')
+               cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
+               cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
+            else:
+               cbbox = inset_axes(ax, '100%', '100%', bbox_to_anchor=(0, -0.13, 1, 0.13), bbox_transform=ax.transAxes, loc = 8, borderpad=0)
+               [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
+               cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
+               cbbox.set_facecolor([1,1,1,0.7])
+               cbbox.text(0.5,-0.1, "Maximum reflectivity (dbz)", verticalalignment='center', horizontalalignment='center')
+               cbbox.text(0.75,-0.35, u'$\u00D7$'+" Chance of snow", verticalalignment='center', horizontalalignment='center', color='black')
+               cbbox.text(0.25,-0.35, "Cloud cover (white background shading)", verticalalignment='center', horizontalalignment='center', color='black')
+               cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
+               cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
 
 
 # Add inset timestamp

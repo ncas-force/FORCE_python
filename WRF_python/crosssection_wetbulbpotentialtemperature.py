@@ -14,7 +14,7 @@ def crosssection_wetbulbpotentialtemperature(x):
 
 # Contour information
 
-   cmin = -10.0
+   cmin = -40.0
    cmax = 30.0
    cstep = 0.5
 

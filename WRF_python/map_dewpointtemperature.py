@@ -4,7 +4,7 @@ def transform_and_stitch_cmap(base_cmap, name="combo",
                                light_params=(0.3, 0.0),
                                n=256, exp=2.0, cutoff=0.2,
                                reverse_first=True,
-                               portions=(0.666, 0.334)):  # fraction of colors for each section
+                               portions=(0.8, 0.2)):  # fraction of colors for each section
 
     import numpy as np
     from matplotlib.colors import LinearSegmentedColormap
@@ -134,6 +134,10 @@ def map_dewpointtemperature(x):
 # Extract the number of times within the WRF file and loop over all times in file
    num_times = np.size(extract_times(wrf_in, ALL_TIMES))
 
+# Read sea ice and grounded ice limits
+   grounded_ice = getvar(wrf_in, 'XLAND', timeidx=0)
+   sea_ice = getvar(wrf_in, 'LANDMASK', timeidx=0)
+
 # Loop over times present in input file
    for i in np.arange(0, num_times, 1):
 
@@ -218,14 +222,32 @@ def map_dewpointtemperature(x):
 
          mymap=transform_and_stitch_cmap(mpl.cm.get_cmap('plasma'), name="plasma_combo", reverse_first="True")
 
-         td_lvl = np.arange(-79.0, 41.0, 1.0)
+         td_lvl = np.arange(-79.0, 21.0, 1.0)
          mymap=transform_and_stitch_cmap(mpl.cm.get_cmap('plasma'), name="plasma_combo", reverse_first="True")
 
          plt.contourf(lons, lats, td_level, levels=td_lvl, zorder=1, cmap=mymap, transform=crs.PlateCarree(), extend="both")
 
+         ax.contour(lons, lats, grounded_ice, levels=[0.5], colors='black', linewidths=1.5, zorder=100, transform=crs.PlateCarree())
+         ax.contour(lons, lats, sea_ice, levels=[0.5], colors='cyan', linewidths=1.5, zorder=101, transform=crs.PlateCarree())
+
+# Read station locations
+
+         marker_file = "../scripts/marker_list"
+         with open(marker_file, "r") as f:
+            for line in f:
+               line = line.strip()
+
+               stat_name, stat_lat, stat_lon = line.split(",")
+
+               stat_lat = float(stat_lat)
+               stat_lon = float(stat_lon)
+
+               ax.plot(stat_lon,stat_lat, marker="o", markersize=6, color="red", transform=crs.PlateCarree(), zorder=1000)
+
+
 # Identify whether domain is portrait or landscape
 
-         if np.size(lats[:,0]) < np.size(lats[0,:]):
+         if np.size(lats[:,0]) > np.size(lats[0,:]):
             portrait = True
          else:
             portrait = False
@@ -258,13 +280,22 @@ def map_dewpointtemperature(x):
                cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
                cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
          else:
-            cbbox = inset_axes(ax, '100%', '100%', bbox_to_anchor=(0, -0.13, 1, 0.13), bbox_transform=ax.transAxes, loc = 8, borderpad=0)
-            [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
-            cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
-            cbbox.set_facecolor([1,1,1,0.7])
-            cbbox.text(0.5,0.3, colorbartext, verticalalignment='center', horizontalalignment='center')
-            cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
-            cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
+            if portrait:
+               cbbox = inset_axes(ax, '100%', '100%', bbox_to_anchor=(0, -0.13, 1, 0.13), bbox_transform=ax.transAxes, loc = 8, borderpad=0)
+               [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
+               cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
+               cbbox.set_facecolor([1,1,1,0.7])
+               cbbox.text(0.5,0.3, colorbartext, verticalalignment='center', horizontalalignment='center')
+               cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
+               cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
+            else:
+               cbbox = inset_axes(ax, '100%', '100%', bbox_to_anchor=(0, -0.13, 1, 0.13), bbox_transform=ax.transAxes, loc = 8, borderpad=0)
+               [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
+               cbbox.tick_params(axis='both', left=False, top=False, right=False, bottom=False, labelleft=False, labeltop=False, labelright=False, labelbottom=False)
+               cbbox.set_facecolor([1,1,1,0.7])
+               cbbox.text(0.5,-0.1, colorbartext, verticalalignment='center', horizontalalignment='center')
+               cbaxes = inset_axes(cbbox, '95%', '30%', loc = 9)
+               cb = plt.colorbar(cax=cbaxes, orientation='horizontal')
 
 # Add inset timestamp
          tsbox = inset_axes(ax, '95%', '3%', loc = 9)

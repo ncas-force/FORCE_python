@@ -14,8 +14,8 @@ def crosssection_potentialtemperature(x):
 
 # Contour information
 
-   cmin = -10.0
-   cmax = 82.0
+   cmin = -40.0
+   cmax = 80.0
    cstep = 2.0
 
 # Read cross section spatial information from input dictionary 

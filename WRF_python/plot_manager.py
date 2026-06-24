@@ -18,13 +18,14 @@ if __name__ == "__main__":
 
 # Tests to make sure parsing of dictionaries is functioning properly.
 
-#   command_dict = {"plottype":"crosssection", "latitudes":[58.0, 58.25], "longitudes":[-5.25, -5.375], "infile":"/home/earajr/cul_mor/output/CulMor/Scotland/data/2024102200/wrfout_d03_2024-10-22_15:06:00", "content":"specifichumidity", "windvector":True, "leveltype":"altitude", "levels": [0, 4000], "times":["20241022T150600"]}
+
+#   command_dict = {"plottype":"crosssection", "latitudes":[-73.0, -62.50], "longitudes":[-69.9, -58.67], "infile":"/home/force-polar/pwrf/troll/data/2026062300/wrfout_d01_2026-06-23_10:00:00", "content":"wetbulbtemperature", "windvector":True, "leveltype":"altitude", "levels": [0, 10000], "times":["20260623T100000"]}
 #   command_dict = {"plottype":"profile", "latitudes":[53.5], "longitudes":[0.5], "infile":"/home/force-nwr/nwr/uk/data/2023041400/wrfout_d02_2023-04-14_14:00:00", "content":"skewT"}
 #   command_dict = {"plottype":"map", "latitudes":[0, 0], "longitudes":[0, 0], "leveltype":"pressure", "levels": [850], "infile":"/home/earajr/cul_mor/output/wrfout_d03_2024-10-22_15:06:00", "content":"w"}
 
-#   command_dict = {"plottype":"map", "latitudes":[0, 0], "longitudes":[0, 0], "leveltype":"pressure", "levels": [900],  "infile":"/home/force-nwr/nwr/uk/data/2025100200/wrfout_d02_2025-10-03_12:00:00", "content":"10mwindspeed", "domain":"d02"}
+   command_dict = {"plottype":"map", "latitudes":[0, 0], "longitudes":[0, 0], "leveltype":"pressure", "levels": [850],  "infile":"/home/force-polar/pwrf/troll/data/2026062300/wrfout_d01_2026-06-23_10:00:00", "content":"w", "domain":"d01"}
 
-   command_dict = {"plottype":"timeline", "latitudes":[51.70296], "longitudes":[-5.15096],  "infile":"/home/force-nwr/nwr/uk/data/2025100200/wrfout_d02_2025-10-03_00:00:00", "content":"meteogram", "timelinestarttime":"2025-10-03_00:00:00", "timelinelength":"24", "locationname":"DaleFort"}
+#   command_dict = {"plottype":"timeline", "latitudes":[51.70296], "longitudes":[-5.15096],  "infile":"/home/force-nwr/nwr/uk/data/2025100200/wrfout_d02_2025-10-03_00:00:00", "content":"meteogram", "timelinestarttime":"2025-10-03_00:00:00", "timelinelength":"24", "locationname":"DaleFort"}
 
    fig = plotter(command_dict)
    plt.savefig("test_figure.png", bbox_inches='tight')

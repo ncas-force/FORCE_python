@@ -14,8 +14,8 @@ def crosssection_dewpointtemperature(x):
 
 # Contour information
 
-   cmin = -42.5
-   cmax = 35.0
+   cmin = -80.0
+   cmax = 20.0
    cstep = 2.5
 
 # Read cross section spatial information from input dictionary 
@@ -302,7 +302,7 @@ def crosssection_dewpointtemperature(x):
          ax.set_xticklabels([])
          ax.axis('off')
          ax = fig.add_subplot(gs[k+2])
-         fig.colorbar(t_contours, cax=ax, label="Dewpoint Temperature $^\circ$C")
+         fig.colorbar(t_contours, cax=ax, label="Dewpoint Temperature $^\circ$C", ticks=[-80.0, -70.0, -60.0, -50.0, -40.0, -30.0, -20.0, -10.0, 0.0, 5.0, 10.0, 15.0, 20.0])
 
 # Return figure
          return(fig)

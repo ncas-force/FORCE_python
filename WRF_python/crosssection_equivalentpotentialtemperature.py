@@ -14,7 +14,7 @@ def crosssection_equivalentpotentialtemperature(x):
 
 # Contour information
 
-   cmin = 0.0
+   cmin = -40.0
    cmax = 80.0
    cstep = 2.0
 
