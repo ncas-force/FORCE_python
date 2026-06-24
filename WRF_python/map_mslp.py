@@ -10,6 +10,7 @@ def map_mslp(x):
    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
    from skimage.measure import label
    from pyproj import Geod
+   from pathlib import Path
 
    from wrf import (getvar, interplevel, vertcross, CoordPair, ALL_TIMES, to_np, get_cartopy, latlon_coords, cartopy_xlim, cartopy_ylim, extract_times, extract_global_attrs, ll_to_xy)
 
@@ -303,9 +304,11 @@ def map_mslp(x):
          ax.contour(lons, lats, grounded_ice, levels=[0.5], colors='black', linewidths=1.5, zorder=100, transform=crs.PlateCarree())
          ax.contour(lons, lats, sea_ice, levels=[0.5], colors='cyan', linewidths=1.5, zorder=101, transform=crs.PlateCarree())
 
+         ax.set_autoscale_on(False)
+
 # Read station locations
 
-         marker_file = "../scripts/marker_list"
+         marker_file = Path(__file__).resolve().parent / ".." / "scripts" / "marker_list"
          with open(marker_file, "r") as f:
             for line in f:
                line = line.strip()

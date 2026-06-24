@@ -4,14 +4,14 @@
 #conda activate ncl
 
 # MODIFY THESE VARS TO REQUIRED PATHS
-script_dir="/home/earajr/FORCE_python/scripts"
-wrf_out_dir="/home/force-nwr"
+script_dir="/home/force-polar/pwrf/plotting/scripts"
+wrf_out_dir="/home/force-polar"
 
 project=$1
 region=$2
 run_len=$3
 
-plot_machine="jaga"
+plot_machine="bengali"
 YYYYMMDD=$( date -u --date='today' +%Y%m%d )
 HH=00
 

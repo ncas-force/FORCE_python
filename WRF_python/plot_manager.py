@@ -23,7 +23,7 @@ if __name__ == "__main__":
 #   command_dict = {"plottype":"profile", "latitudes":[53.5], "longitudes":[0.5], "infile":"/home/force-nwr/nwr/uk/data/2023041400/wrfout_d02_2023-04-14_14:00:00", "content":"skewT"}
 #   command_dict = {"plottype":"map", "latitudes":[0, 0], "longitudes":[0, 0], "leveltype":"pressure", "levels": [850], "infile":"/home/earajr/cul_mor/output/wrfout_d03_2024-10-22_15:06:00", "content":"w"}
 
-   command_dict = {"plottype":"map", "latitudes":[0, 0], "longitudes":[0, 0], "leveltype":"pressure", "levels": [850],  "infile":"/home/force-polar/pwrf/troll/data/2026062300/wrfout_d01_2026-06-23_10:00:00", "content":"w", "domain":"d01"}
+   command_dict = {"plottype":"map", "latitudes":[0, 0], "longitudes":[0, 0], "leveltype":"pressure", "levels": [850],  "infile":"/home/force-polar/pwrf/troll/data/2026062300/wrfout_d03_2026-06-23_10:00:00", "content":"10mwindspeed", "domain":"d03"}
 
 #   command_dict = {"plottype":"timeline", "latitudes":[51.70296], "longitudes":[-5.15096],  "infile":"/home/force-nwr/nwr/uk/data/2025100200/wrfout_d02_2025-10-03_00:00:00", "content":"meteogram", "timelinestarttime":"2025-10-03_00:00:00", "timelinelength":"24", "locationname":"DaleFort"}
 
